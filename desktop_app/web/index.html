@@ -142,14 +142,14 @@
       <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/>
     </svg>
     <span class="text-sm font-bold text-slate-300">Cỗ Máy SEO Auto 100%</span>
-    <span class="text-xs text-gray-600 ml-1">— Phân Hệ Modules</span>
+    <span id="ver-label" class="text-xs text-gray-700 ml-2 font-mono" title="Phiên bản hiện tại">v?.?.?</span>
   </div>
   <div class="flex items-center gap-2">
     <span id="status-bar" class="text-xs text-gray-600 max-w-xs truncate">Sẵn sàng</span>
     <button onclick="checkUpdate()" id="btn-update"
-            class="text-xs px-2.5 h-6 rounded border border-gray-800 text-gray-600 hover:border-yellow-600 hover:text-yellow-500 transition-colors whitespace-nowrap"
+            class="text-xs px-2.5 h-6 rounded border border-gray-800 text-gray-500 hover:border-yellow-600 hover:text-yellow-500 transition-colors whitespace-nowrap"
             title="Kiểm tra cập nhật">
-      🔄 Cập nhật
+      🔄 Kiểm tra bản mới
     </button>
     <button onclick="eel.close_win()()" class="w-7 h-6 rounded text-gray-600 hover:bg-blue-700 hover:text-white text-sm transition-colors">✕</button>
   </div>
@@ -1285,6 +1285,18 @@ async function t6_bat_dau() {
 function openUpdateModal() { document.getElementById('update-modal').classList.remove('hidden'); }
 function closeUpdateModal() { document.getElementById('update-modal').classList.add('hidden'); }
 
+async function loadPhienBan() {
+  try {
+    const v = await eel.lay_phien_ban()();
+    const el = document.getElementById('ver-label');
+    if (el && v.label) {
+      el.textContent = v.label;
+      el.title = `Commit ngày ${v.date} ${v.time}  #${v.hash}`;
+      el.style.color = '#4b6a8a';
+    }
+  } catch(e) {}
+}
+
 async function checkUpdate() {
   const btn = document.getElementById('btn-update');
   btn.textContent = '⏳...';
@@ -1299,25 +1311,33 @@ async function checkUpdate() {
 
   try {
     const r = await eel.kiem_tra_cap_nhat()();
-    document.getElementById('um-body').textContent = r.message || '';
+
+    // Hiển thị version hiện tại + remote vào modal
+    let verLine = '';
+    if (r.local_hash)  verLine += `📌 Hiện tại: #${r.local_hash}\n`;
+    if (r.remote_hash) verLine += `☁️  Server:   #${r.remote_hash}\n`;
+    document.getElementById('um-body').textContent = (verLine ? verLine + '\n' : '') + (r.message || '');
 
     if (r.co_cap_nhat) {
       document.getElementById('um-icon').textContent = '🔔';
       document.getElementById('um-title').textContent = 'Có bản cập nhật mới!';
-      document.getElementById('btn-update').classList.add('border-yellow-600','text-yellow-500');
-      document.getElementById('btn-update').textContent = '🔔 Có cập nhật!';
+      btn.classList.remove('border-gray-800','text-gray-500');
+      btn.classList.add('border-yellow-600','text-yellow-500');
+      btn.textContent = '🔔 Có bản mới!';
       if (r.danh_sach) {
-        document.getElementById('um-detail').textContent = '📋 Thay đổi:\n' + r.danh_sach;
+        document.getElementById('um-detail').textContent = '📋 Các thay đổi:\n' + r.danh_sach;
         document.getElementById('um-detail').classList.remove('hidden');
       }
       document.getElementById('btn-do-update').classList.remove('hidden');
     } else {
       document.getElementById('um-icon').textContent = '✅';
       document.getElementById('um-title').textContent = 'Phiên bản mới nhất';
-      document.getElementById('btn-update').textContent = '✅ Mới nhất';
+      btn.classList.remove('border-yellow-600','text-yellow-500');
+      btn.classList.add('border-green-800','text-green-500');
+      btn.textContent = '✅ Mới nhất';
     }
   } catch(e) {
-    document.getElementById('um-body').textContent = '❌ Lỗi: ' + e;
+    document.getElementById('um-body').textContent = '❌ Lỗi kiểm tra: ' + e;
   }
 
   btn.disabled = false;
@@ -1499,6 +1519,7 @@ window.addEventListener('load', () => {
     loadSidebar();
     rag_stats();
     loadBlocks();
+    loadPhienBan();
   }, 600);
 });
 </script>

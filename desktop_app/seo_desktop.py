@@ -1310,6 +1310,28 @@ def thuc_hien_cap_nhat() -> dict:
     return {"ok": True, "message": f"✅ Cập nhật thành công!\n{out}\n\n⏳ App đang khởi động lại..."}
 
 # ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════════════════
+# PHIÊN BẢN
+# ════════════════════════════════════════════════════════════════════════════════
+
+@eel.expose
+def lay_phien_ban() -> dict:
+    """Trả về phiên bản hiện tại từ git log (commit date + hash ngắn)."""
+    repo = GIT_ROOT or PROJECT_DIR
+    try:
+        # Lấy: "2026-05-03 22:10 #e1fe30c"
+        ok, out = _git(["log", "-1", "--format=%cd %h", "--date=format:%Y-%m-%d %H:%M"], repo)
+        if ok and out:
+            parts = out.strip().split()
+            date  = parts[0] if len(parts) >= 1 else "?"
+            hhmm  = parts[1] if len(parts) >= 2 else ""
+            hsh   = parts[2] if len(parts) >= 3 else ""
+            label = f"v{date.replace('-','.')}  #{hsh}"
+            return {"ok": True, "label": label, "date": date, "time": hhmm, "hash": hsh}
+    except Exception:
+        pass
+    return {"ok": False, "label": "v?.?.?", "date": "", "time": "", "hash": ""}
+
 # SYSTEM
 # ════════════════════════════════════════════════════════════════════════════════
 
