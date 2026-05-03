@@ -231,9 +231,10 @@
       <label class="lbl">Author Block Code:</label>
       <textarea id="sb-author-block" class="inp text-xs py-1.5 mb-2 resize-none h-12"
                 placeholder="[flatsome_block id=&quot;...&quot;]" oninput="onCfgChange()"></textarea>
-      <label class="lbl">Shortcode cuối bài:</label>
-      <textarea id="sb-shortcode" class="inp text-xs py-1.5 resize-none h-12"
-                placeholder="[flatsome_block id=&quot;...&quot;]" oninput="onCfgChange()"></textarea>
+      <label class="lbl">Shortcode cuối bài (Slider):</label>
+      <textarea id="sb-shortcode" class="inp text-xs py-1.5 resize-none h-14"
+                placeholder='[blog_posts style="normal" columns="4" category="tin-tuc" posts="8"]'
+                oninput="onCfgChange()"></textarea>
     </div>
 
     <div class="px-3 border-t border-gray-900 pt-3">
@@ -771,7 +772,9 @@ async function loadSidebar() {
     if (cfg.anchor2) document.getElementById('sb-anchor2').value = cfg.anchor2;
     if (cfg.url2) document.getElementById('sb-url2').value = cfg.url2;
     if (cfg.author_block_code) document.getElementById('sb-author-block').value = cfg.author_block_code;
-    if (cfg.flatsome_shortcode) document.getElementById('sb-shortcode').value = cfg.flatsome_shortcode;
+    // Shortcode slider — dùng giá trị đã lưu, hoặc mặc định giống Streamlit
+    const _defaultShortcode = '[blog_posts style="normal" columns="4" category="tin-tuc" posts="8" orderby="rand" show_date="false" excerpt="false" show_category="false" comments="false" image_height="56.25%" auto_slide="4000"]';
+    document.getElementById('sb-shortcode').value = cfg.flatsome_shortcode || _defaultShortcode;
   } catch(e) { console.warn('Sidebar load:', e); }
 }
 
