@@ -1362,11 +1362,34 @@ with tab6:
                         except Exception:
                             return True  # Nếu AI lỗi → giữ lại, không bỏ
 
+                    _LAUNCH_ARGS = [
+                        "--disable-web-security", "--no-sandbox",
+                        "--disable-gpu", "--disable-dev-shm-usage",
+                        "--ignore-certificate-errors", "--ignore-ssl-errors",
+                    ]
+
+                    def _launch_browser(pw):
+                        try:
+                            return pw.chromium.launch(headless=True, args=_LAUNCH_ARGS)
+                        except Exception as _e:
+                            if "Executable doesn't exist" not in str(_e) and "Please run" not in str(_e):
+                                raise
+                        for _exe in [
+                            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+                            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+                        ]:
+                            if os.path.isfile(_exe):
+                                try:
+                                    return pw.chromium.launch(executable_path=_exe,
+                                                              headless=True, args=_LAUNCH_ARGS)
+                                except Exception:
+                                    continue
+                        raise RuntimeError("Không tìm thấy browser. Hãy chạy: python -m playwright install chromium")
+
                     with sync_playwright() as pw:
-                        browser = pw.chromium.launch(
-                            headless=True,
-                            args=["--disable-web-security", "--no-sandbox"],
-                        )
+                        browser = _launch_browser(pw)
                         ctx = browser.new_context(
                             viewport={"width": 1440, "height": 900},
                             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
