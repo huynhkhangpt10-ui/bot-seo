@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs cat *)",
+      "Bash(python *)",
+      "Bash(pip install *)",
+      "Bash(where python *)",
+      "PowerShell(pip install *)",
+      "PowerShell(cmd /c \"D:\\\\Bot_SEO\\\\build_app.bat\" 2>&1)",
+      "Bash(Get-Content \"C:\\\\Users\\\\HUYNHK~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--Bot-SEO\\\\dff18a8d-52f6-4107-95d1-9bb35d99433b\\\\tasks\\\\bldgitkx2.output\" -Wait)",
+      "Bash(Select-String -Pattern \"BUILD THANH CONG|LOI|ERROR|error|FAILED|successfully|completed\" --line-buffered)",
+      "PowerShell(Copy-Item *)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(pip show *)",
+      "PowerShell(C:\\\\Users\\\\Huynhkhang\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe -m pip install streamlit 2>&1 | Select-String \"Successfully|already|ERROR\")",
+      "PowerShell(C:\\\\Users\\\\Huynhkhang\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python311\\\\python.exe -m streamlit --version)",
+      "PowerShell(netstat *)",
+      "WebSearch",
+      "WebFetch(domain:developers.google.com)",
+      "WebFetch(domain:huynhkhang.com)",
+      "Bash(tasklist)",
+      "Bash(netstat -ano)"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+
+============================================================
+TEST: loi photoshop khong mo duoc
+============================================================
+
+
+--- SINH OUTLINE ---
+[STATUS] 🧠 Đang đọc tài liệu gốc và lên dàn ý...
+[STATUS] 🌐 **[KIỂM DUYỆT SỰ THẬT] AI ĐÃ ĐỌC CÁC BÀI SAU ĐỂ LÊN DÀN Ý:**
+👉 [greaterthangatsby.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHMwLdHR3ifQ_P-ReNkSjUJaTt6wT2MaY1XdeY-C5UY_5kr_eX1Muvtq8u1H3U-d6kjzEHVOftDhzG2Ea-cpn79-nlmISLXBi9igsL2pT1ocXC7YUkYoqGjKRajw9YG2H3sz-l_WKOaRMMy9pOC6AHzfGI5PDLNlEsphAvXKuWP4eZ7YFFOzx6JPA==)
+👉 [adobe.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHs3zAxaiZJIr_3oRbD9vZekvC9E_QU4ucbVQDxgWb82pjg-nhKyhrjHKEvxi_uP_0iwsi1c0IsXN227uc1LOFOl2sOf49ZNdzdYhxOZhbGSOoY92HvZ_76sdtb_bs1w-704YZb6LeYCZBYsLFFkcojrBOYXiNHcmwyCZQbZ5msDPp4rP80Yfbk93Vn6taQRMwLpl05SHjGi8nf8tHzTdgb)
+👉 [mobilecity.vn](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFaC9GKTbKZ6abeL7RbfxivtDELTTVfh-1OhRKKXy3tinWaXcsKWsoEvWBKBvS02aWI3zGB50vfjEKzAcLHLs7gSidVk5nYEka8GeeHF9wHTu1ysv_0ij2OyKeH1Nb-SFwR2A62cOzrVcAtGA-6etTiYTcLCOxV1EIe4cqkPLd_n7w=)
+👉 [drivereasy.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEek-FeNDGksQr1VibO4cYlgc8aUM-qP1e1ODH6lTTEpeX5XmV7btuQ86OjjGGjR66f1sypQumwzbM6O1YsNzsuaLI8UvfGiUJeuwtp9SMxJj5goIxyqIQ0vh7xXt1YlsVLVk-KmgWEX6RdV9KltlnTqbPWF-zBvbNKgaqjFA==)
+👉 [helpdeskgeek.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGm6Qz5TM_muHbsA-B_M62qoayLmuvH4bZx-uu4FhUeVx6yBqy0ZxvndS0o3TfhByraw-kiSTSLvuilJbM9hsVg0glYmb0k2-aFVW8K8sXHybNt4WEPDThf1kBInH0CpXSl7GYRkM94p3bEDNRbGWpOSxl2tovEu1KJuhrJAf8=)
+👉 [filtergrade.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHyprjCpdjOAaQWOMwcrDRtSwnb53x5uOSmKn3tre985J0rt3jJUzDGKv3o6s5irKPbRIDzglYDDhH2dHPoGl9PZdTSK6Kq7XGXK0CZmlFFli74lqEMiYcuOjoiO3HZEp1y2Pd2Wd5ZCcHKUH7Mf49hXWUEsBs=)
+👉 [adobe.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEnn-gZGZ5SheQAmh3RhJ2BdDSdFGSS_P2sPKa2HXAQMIxQJrDXezu_BGFhXnoPcuF2WTjlEXCxPyc_Ht8u2Dw3UJHejb7irZyBQVqKo-gplhUFP9ZXDuv6aj13tQpgHtsBgp4haN-CcdH0iuscXpdYz-i9Pwo=)
+👉 [unica.vn](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE6w8gHVdOdmb0_kPdLXZFBh7dBf9gU7-1_G5dfZk6DuxAeSYZsqcTJsIHReUkHKMr_ZcWJsPPLUiIpPbp2xJ4CCI8ldqUx6GgJf_Bh8qCOBFc0vm4leujg2DyTRF3S_BxCqn9BRPZW8MacPwX-TWeo04Jb7HPe8gDHykUQ5zxXGA6v)
+👉 [remosoftware.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQELxPEK0debdp-vn-m357fuq6QbVh7GdIfOBTl3pDVt7ms0eWKUpR9KX27fXgyhGni5xD_oNp12UGiJUu0yfvm3GE6U0l2QI6JwXJ70jGNikonuuFzqJ6qYvSTsM4u7aXX2Y5K2F2Pg1VxH3SogjIi7mNHzp90kPNCpaA==)
+👉 [lightroomqueen.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEedYt04tOFIhSYjuWr7pVD_i2-IoBZ-lBgB5SYHcYdy8IWbxxazsiTBs_AmP0R_fH9H2ebq1WA7szYaQunFugf7ud8dx4V4BdrBXa3H_AtcS634K7-6r2M5EGMIfLiB8Faa5Ujs9tqci5b19cOhrsl-zNU_43w3X9C9FSMTIWTZgSFgQhWNLjzjpsyDOsfyQznUI3b)
+👉 [alamy.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHZcDO3I9IcarnhyU7FNTlGNbDuuCrM-uNeHnuB1bLNyuZpcF6fJqi7Mzcivy5cu60Z2C3nxln7qISgl-Pn5SEZ8Aj8ufb31H_xVCQLio5TJ8NtIlpeXyoGxyNgmzTBTNfshaMKWylBStcdzid2lS1jZbNBe0Rm5vbZILAv8PQQ1Ps_)
+👉 [thegioididong.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFu7daYKR8eciyGZzAgSt6A65tMHytvGWVGzrU474LzL-fW0As6k3xZ6LoXreDA3LkhDuawIGlBV8GJDwTdFG_MCuGxUQdYR5UNIBibxyV-kUSmBexTE6uQ96GiWp6GPIBqSDcAmSVpIVZJq_5iHL_0_DIbW5KlBBAsvubslNniRnT0UV-y9go7Sx8HIqDdMLi8bFk=)
+👉 [youtube.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHgfh_eZtQ3r38X5aNCkUp2BE5YyIMDgZBJqkv5591rabUHCFM7qj1NgyOZIARA6mwSYJxNLCfb5jbL4LerVH17yM9Jk06QtRWvAvu2nkRG7aw2KefQCnR4pgFgb94YNmodOorE2lQ=)
+👉 [adobe.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGjGg1e27CJ5txCZia20sNC4ZeK-l3c1d6hL1PaiCxnodd2cM6BZ7s7d8AYqFgFJLmTnqACcZ0bq8_jUWWyGBgIj7m6VHvCEIrAWQytCo9anqP1en1X6uYw986OPPRRLDbOnc82UuWWtJpfiLwV2aT9BjNTnzGF-3HzAtc7Fes1EQTtjJDSONpJQn0=)
+👉 [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEdgGooEoujAH2jyRgnZHGKSWe9gOPG7tZybUZgydwK47tmbx-g5tu6J1z8HiDrNrQxFqJ7p3_-qni0sED0owX8G6qyBpowYOxtaK7ydFl1noEQAoJqtpEbLpIVRuXxwaNdlsApSac6isWTFvQ2xMRJGfGf9pv844Z7wjYiQtskhrIPMi35Aoue7Bxjq9DzsTys5VW9Lu3w)
+
+OUTLINE OK
+Tieu de: Loi Photoshop Khong Mo Duoc: lỗi photoshop không mở được: 9 nguyên nhân và cách khắc phục 2026
+Meta: Hướng dẫn chi tiết cách sửa lỗi photoshop không mở được trên Windows và Mac, cập nhật 2026. Tìm hiểu nguyên nhân và giải pháp nhanh nhất.
+
+--- SINH BAI VIET ---
+[STATUS] ✍️ Đang thu thập dữ liệu và múa phím viết bài...
+[STATUS] 🌐 **[NGUỒN THAM KHẢO] AI đã dựa vào các bài này để viết Nội Dung:**
+👉 [greaterthangatsby.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFF-zzEuceI8yGyOa7Oxv0XEboYu2aDfKCzp_hjWB5s1ys6kkrYKC-_jwiTg8w6FkC7i5k27CbCYIwt5J5_ochpSPqJpusUCS3yNhVq5fRbbCqbcwkOQ4s45rh3XuCGRhqc3mOQqzMar5ooZegbEtnWsUh_V2vm2iyKRAWF8hyWGgG0lEJBccnWNQ==)
+👉 [filtergrade.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHN_Pc87MZXPATfgoqyIqe-YhB2GqTzwkhqLSkPtJ3EH5mo3rsc0g4DEVQgZ5hT2yLOn-IJu73_JnrNz9m6MqFdMNVvxRt0lYKhlL88fpSot7egfSZ4RSyJf3xfSvMb5gIldaOUyaPaaQieB8G-t0QqWa_QaHw=)
+👉 [youtube.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGIBAIafVj7zy8eoQj8wlYgkpuR8Z4HPVn9qOcF5cuVeccfMTMQOdKiBB2lS-Wv3gbHQcA_zs-c0fSLjznAA--vlbfxTTNeI1QOaiT7mm5yAPxQzGh_h4r4uGQbBZnCkuu5oV5t0TY=)
+👉 [remosoftware.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFpjAamPbxpxbN9hsz2gq60S284VjFT6hWL5A8cChlITfsTZbQ4OKUXFyLmcrGgvxlmLB2IwP9FZu5McnSyyt6J1iJf7NWYEH5qGZQcMOAgBzlY6wxcO3hp-z8kYIJRC7ccEeyvMWKdNzQ33stcgXCNusGHJt4ql33blw==)
+👉 [adobe.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGQQFwW_YmClr0MPyC2QciQVUnA5YyObNlEPT__1pbI9guixSMX_XzEKc4ZzIuWOCx68QBcuRwfBGisQewh0DMA4jyYHNEQ8CATJIy6EM9lPQY8MdxjZGlTCMNj1x1NSjbhXLXn8AT9ZYh_doNcvSeR38BAY8s52fWgBFPDuc5kEA==)
+👉 [thegioididong.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGgYXGJDllG-sx2PfOxzKxxvJ1aYtWAGPw9_C4POGR_9L87FEsMLCFxbS7Vjpjz4V-Sbj777w-MKpd4HdcoekU2sxFvK2ghQg8W00Ln2Xfry4nL3RKCb4x9ZN-0RAMTRlL-VYLXTEAXd7TgIJ-3NMO11RAWBl1IT81IgyQlH_6bLEzf2M6G2kpdv1ec9DKhp3HHWNM=)
+👉 [unica.vn](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFFULGBoOmomgHvC2y89jKPonuDfNUne0vXGiWIszxRjBEvBXVcvHNfx4cS53tUx5rXuF3GbtwnGX5TXIeCSmfRf5rTh2umxK4zjYlNDQcDOno0lgKkSl2zYVEy1r9g6aQBHOpcqri18w9P6sOYvXwKb_w4m4Y-nS3tCtx8QJ28VM0a)
+👉 [adobe.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEeVYLh9SxEgbdz_uULtMm28HGkDVINVZLC8CLUMemGFeMp3Lqbq-xnnpjImfEWdyjRPKCdpQkYc_qfFuI2IbrR3aRnjYun1Cx5-mzS79g__rWewqY0Y_W0mHlNjs5wheZuZoO7B4HVZuYAye1uiODGajJ81LfNJYiAr6XMpaNVw675pbPluF8Oskah7XJwhTln7wiHO0ybPxaIwSEUPGbb)
+👉 [helpdeskgeek.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFV8LJ2NixgADPvuWfgplxjH44cY5d2uPdFTvoGeZp-QBGg81jrA1VykSEOMPSTAbdWhebcQnzuszLN1whTtNKVUc59f-ODVQHo5L8K-5Lnn-22GpLqYRMiQOVm1mJkQTTXel3RtdTw3pQfEhu0yKooY3BVRs4fM9rLovIpSP8=)
+
+BAI VIET OK - 10809 ky tu
+
+--- KIEM TRA ---
+OK Markdown ##
+OK TL;DR box
+FAIL FAQ
+OK Schema
+OK Khong LSI
+OK Khong AEO
+OK Khong Tan Uyen
+FAIL Co TP.HCM
+
+Luu: test_output_loi_photoshop_khong_mo_duoc.html
+Log: test_log_loi_photoshop_khong_mo_duoc.txt

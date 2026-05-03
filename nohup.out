@@ -1,0 +1,67 @@
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8505
+  Network URL: http://103.200.22.41:8505
+  External URL: http://103.200.22.41:8505
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8081
+  Network URL: http://103.200.22.41:8081
+  External URL: http://103.200.22.41:8081
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8082
+  Network URL: http://103.200.22.41:8082
+  External URL: http://103.200.22.41:8082
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+2026-04-26 17:45:15.264 Port 8082 is not available
+  Stopping...
+  Stopping...
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8081
+  Network URL: http://103.200.22.41:8081
+  External URL: http://103.200.22.41:8081
+
+/usr/local/lib/python3.10/dist-packages/google/api_core/_python_version_support.py:275: FutureWarning: You are using a Python version (3.10.12) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+2026-04-26 19:19:13.885 Please replace `use_container_width` with `width`.
+
+`use_container_width` will be removed after 2025-12-31.
+
+For `use_container_width=True`, use `width='stretch'`. For `use_container_width=False`, use `width='content'`.
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8082
+  Network URL: http://103.200.22.41:8082
+  External URL: http://103.200.22.41:8082
+
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+2026-04-26 19:30:10.878 Port 8505 is not available

@@ -1,0 +1,26 @@
+=== DEBUG LOG - Adobe Animate 2026 ===
+
+✓ Biến sh tồn tại: <class 'gspread.spreadsheet.Spreadsheet'>
+✗ Lỗi lấy worksheet 'tukhoa': tukhoa
+✓ Đã lấy được worksheet 'Tukhoa' (chữ T hoa)
+✓ Đọc được 353 dòng từ tab tukhoa
+
+Header: ['Từ khóa', 'Từ khóa phụ', 'Trạng thái', 'Link bài viết', 'Số bài Vệ tinh', 'Link Vệ tinh', 'Link Bài Gốc', 'Link tải ']
+
+Đang lọc các bài 'Hoàn thành'...
+  Dòng 2: anchor='3Ds Max 2018', status='hoàn thành', url='https://huynhkhang.com/tin-tuc/3ds-max-2018/', link_tai=''
+  Dòng 3: anchor='3Ds Max 2019', status='hoàn thành', url='https://huynhkhang.com/tin-tuc/3ds-max-2019/', link_tai=''
+  Dòng 4: anchor='3Ds Max 2020', status='hoàn thành', url='https://huynhkhang.com/tin-tuc/3ds-max-2020/', link_tai=''
+  Dòng 5: anchor='3Ds Max 2021', status='hoàn thành', url='https://huynhkhang.com/tin-tuc/3ds-max-2021/', link_tai=''
+
+✓ Lọc được 349 bài 'Hoàn thành'
+
+✓ Có 349 link hợp lệ để random
+
+✓ Đã chọn 2 link liên quan:
+  1. Adobe Animate 2020
+  2. Adobe Encoder 2026
+
+✗ Cột H trống, AI sẽ tự tìm link chính thức
+
+✓ Là phần mềm: True, Là phần mềm VIP (không tạo hộp download): True

@@ -1,0 +1,13 @@
+{
+    "danh_muc_chon": "Sửa Máy Tính",
+    "trang_thai": "Publish (Đăng ngay)",
+    "ten_block_chon": "🧑‍💻 Tác giả bài viết",
+    "author_block_code": "[block id=\"tac-gia-bai-viet\"]",
+    "flatsome_shortcode": "[blog_posts style=\"normal\" columns=\"4\" category=\"phan-mem\" posts=\"8\" orderby=\"rand\" show_date=\"false\" excerpt=\"false\" show_category=\"false\" comments=\"false\" image_height=\"56.25%\" auto_slide=\"4000\"]",
+    "the_duoc_chon": [
+        "sửa máy tính tại nhà"
+    ],
+    "cho_phep_web": true,
+    "cho_phep_zalo": true,
+    "cho_phep_facebook": false
+}
