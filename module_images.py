@@ -197,3 +197,19 @@ def ve_va_upload_anh(prompt_tieng_anh, tk_chinh, text_seo, short_slug=""):
             if wp_res.status_code == 201: return wp_res.json().get('id'), wp_res.json().get('source_url')
         except: time.sleep(5) 
     return None, None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# RAG — goi module_kho_du_lieu (cung logic voi app Streamlit Tab Kho Du Lieu)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def rag_lay_thong_ke_kho():
+    """So chunks + danh sach file da sap xep. Tra ve (so_chunks, files, loi)."""
+    from module_kho_du_lieu import lay_danh_sach_file_tu_kho_rag
+    return lay_danh_sach_file_tu_kho_rag()
+
+
+def rag_lay_du_lieu_xem_kho(so_mau: int = 5):
+    """Du lieu hien thi 'Xem Kho': 2 cot STT + mau chunk."""
+    from module_kho_du_lieu import lay_du_lieu_xem_kho_rag
+    return lay_du_lieu_xem_kho_rag(so_mau=so_mau)

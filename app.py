@@ -1133,37 +1133,20 @@ with tab5:
 
     import os as _os
 
-    _KHO_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "Kho_Du_Lieu_Vector")
     _TAI_LIEU_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "Nguon_Tai_Lieu_Tho")
 
-    # ── Thống kê kho ────────────────────────────────────────────
-    def _lay_thong_ke_kho():
-        try:
-            import chromadb as _chroma
-            cli = _chroma.PersistentClient(path=_KHO_PATH)
-            col = cli.get_collection("tai_lieu_seo")
-            so_doan = col.count()
-            items = col.get(limit=1000, include=["metadatas"])
-            nguon = set()
-            for m in (items.get("metadatas") or []):
-                src = m.get("source", "")
-                if src:
-                    nguon.add(_os.path.basename(src))
-            return so_doan, len(nguon), sorted(nguon)
-        except Exception as _e:
-            return 0, 0, []
+    from module_images import rag_lay_thong_ke_kho, rag_lay_du_lieu_xem_kho
 
-    so_doan, so_file, ds_file = _lay_thong_ke_kho()
+    so_doan, ds_file, loi_tk = rag_lay_thong_ke_kho()
+    so_file = len(ds_file)
 
     col_r1, col_r2, col_r3 = st.columns(3)
     col_r1.metric("📦 Knowledge chunks", so_doan)
     col_r2.metric("📄 Source files", so_file)
     col_r3.metric("📁 Thư mục nguồn", "Nguon_Tai_Lieu_Tho")
 
-    if ds_file:
-        with st.expander(f"📋 Danh sách {so_file} file đã nạp"):
-            for _f in ds_file:
-                st.text(f"• {_f}")
+    if loi_tk and so_doan == 0:
+        st.caption(f"ℹ️ {loi_tk}")
 
     st.divider()
 
@@ -1202,52 +1185,52 @@ with tab5:
 
     with col_b2:
         if st.button("👁️ Xem Kho", key="rag_xem"):
-            try:
-                import chromadb as _chroma
-                cli = _chroma.PersistentClient(path=_KHO_PATH)
-                col_kho = cli.get_collection("tai_lieu_seo")
-                tong = col_kho.count()
-                if tong == 0:
-                    st.warning("🪣 Kho đang rỗng — chưa có dữ liệu nào được nhai vào.")
-                else:
-                    # Lấy metadata tất cả để thống kê file
-                    all_meta = col_kho.get(limit=5000, include=["metadatas"])
-                    nguon_set = set()
-                    for _m in (all_meta.get("metadatas") or []):
-                        _src = _m.get("source", "")
-                        if _src:
-                            nguon_set.add(_os.path.basename(_src))
-
-                    st.success(f"✅ Kho có **{tong:,} chunks** từ **{len(nguon_set)} file**")
-
-                    # Danh sách file
-                    with st.expander(f"📄 {len(nguon_set)} file đã nạp", expanded=False):
-                        for _fn in sorted(nguon_set):
-                            st.markdown(f"- `{_fn}`")
-
-                    # Mẫu nội dung
-                    items = col_kho.get(limit=5, include=["documents", "metadatas"])
-                    st.markdown("**📝 Mẫu nội dung (5 đoạn đầu):**")
-                    for i, (doc, meta) in enumerate(zip(
-                        items.get("documents", []), items.get("metadatas", [])
-                    )):
-                        src = _os.path.basename(meta.get("source", ""))
-                        preview = doc[:300].replace("\n", " ").strip()
-                        st.markdown(
-                            f"<div style='background:#1e2530;border-left:3px solid #4a90d9;"
-                            f"padding:8px 12px;border-radius:4px;margin:4px 0;"
-                            f"font-size:12px;color:#cdd6e3'>"
-                            f"<span style='color:#6b9bbd;font-size:11px'>📄 {src}</span><br>{preview}...</div>",
-                            unsafe_allow_html=True
-                        )
-            except Exception as _e:
-                st.warning(f"Kho rỗng hoặc lỗi: {_e}")
+            _rag = rag_lay_du_lieu_xem_kho(5)
+            if _rag.get("loi") and _rag["so_chunks"] == 0:
+                st.warning(f"Kho rỗng hoặc lỗi: {_rag['loi']}")
+            elif _rag["so_chunks"] == 0:
+                st.warning("🪣 Kho đang rỗng — chưa có dữ liệu nào được nhai vào.")
+            else:
+                st.success(
+                    f"✅ Kho có **{_rag['so_chunks']:,} chunks** từ **{_rag['so_file']} file**"
+                )
+                st.markdown("##### 📑 Danh sách file (đánh số — 2 cột)")
+                _mono = (
+                    "font-family:Consolas,'Cascadia Code','Courier New',monospace;"
+                    "font-size:12px;color:#c9d1d9;line-height:1.45;word-break:break-all;"
+                )
+                _cL, _cR = st.columns(2)
+                with _cL:
+                    st.markdown(
+                        f"<div style='{_mono}'>" +
+                        "<br>".join(_rag["cot_trai"]) +
+                        "</div>",
+                        unsafe_allow_html=True,
+                    )
+                with _cR:
+                    st.markdown(
+                        f"<div style='{_mono}'>" +
+                        "<br>".join(_rag["cot_phai"]) +
+                        "</div>",
+                        unsafe_allow_html=True,
+                    )
+                st.markdown("**📝 Mẫu nội dung (5 đoạn đầu):**")
+                for _it in _rag.get("mau", []):
+                    _fn, _pv = _it.get("file", ""), _it.get("preview", "")
+                    st.markdown(
+                        f"<div style='background:#1e2530;border-left:3px solid #4a90d9;"
+                        f"padding:8px 12px;border-radius:4px;margin:4px 0;"
+                        f"font-size:12px;color:#cdd6e3'>"
+                        f"<span style='color:#6b9bbd;font-size:11px'>📄 {_fn}</span><br>{_pv}...</div>",
+                        unsafe_allow_html=True,
+                    )
 
     with col_b3:
         if st.button("🗑️ Xoá Kho RAG", key="rag_xoa", type="secondary"):
             try:
                 import chromadb as _chroma
-                cli = _chroma.PersistentClient(path=_KHO_PATH)
+                import module_kho_du_lieu as _mkdl
+                cli = _chroma.PersistentClient(path=_mkdl.THU_MUC_KHO)
                 cli.delete_collection("tai_lieu_seo")
                 st.success("✅ Đã xoá sạch kho RAG!")
                 st.rerun()
