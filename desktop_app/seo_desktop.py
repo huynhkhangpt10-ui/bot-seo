@@ -1305,6 +1305,30 @@ def cao_web_bat_dau(urls: list, thu_muc: str = "./Nguon_Tai_Lieu_Tho",
             from playwright.sync_api import sync_playwright
             _MODEL = "gemini-2.5-flash"
 
+            def _launch_chromium(pw):
+                try:
+                    return pw.chromium.launch(headless=True,
+                        args=["--disable-web-security","--no-sandbox"])
+                except Exception as e:
+                    msg = str(e)
+                    if "Executable doesn't exist" not in msg and "Please run the following command" not in msg:
+                        raise
+                    _push_log("log_cao_web", "⚙️ Playwright thiếu Chromium, đang tự cài browser...")
+                    cmd = [sys.executable, "-m", "playwright", "install", "chromium"]
+                    try:
+                        subprocess.run(cmd, cwd=PROJECT_DIR, check=True, timeout=600)
+                    except Exception:
+                        py = subprocess.run(
+                            ["where", "python"] if os.name == "nt" else ["which", "python"],
+                            capture_output=True, text=True, shell=False
+                        )
+                        python_exe = (py.stdout.strip().splitlines() or ["python"])[0]
+                        subprocess.run([python_exe, "-m", "playwright", "install", "chromium"],
+                                       cwd=PROJECT_DIR, check=True, timeout=600)
+                    _push_log("log_cao_web", "✅ Đã cài Chromium cho Playwright, đang chạy lại...")
+                    return pw.chromium.launch(headless=True,
+                        args=["--disable-web-security","--no-sandbox"])
+
             def _kiem_tra(text):
                 if not loc_ai: return True
                 text = text.strip()
@@ -1322,8 +1346,7 @@ def cao_web_bat_dau(urls: list, thu_muc: str = "./Nguon_Tai_Lieu_Tho",
             _push_log("log_cao_web", f"🕷️ Bắt đầu cào {len(urls)} URL gốc...")
 
             with sync_playwright() as pw:
-                browser = pw.chromium.launch(headless=True,
-                    args=["--disable-web-security","--no-sandbox"])
+                browser = _launch_chromium(pw)
                 ctx = browser.new_context(
                     viewport={"width":1440,"height":900},
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0")
