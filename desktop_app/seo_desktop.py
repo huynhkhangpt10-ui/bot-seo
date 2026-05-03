@@ -42,7 +42,16 @@ else:
     WEB_DIR = os.path.join(BUNDLE_DIR, "web")
 
 STOP_FILE   = os.path.join(PROJECT_DIR, "stop_auto.txt")   # tuyệt đối, tránh lỗi CWD
-# Python modules: ưu tiên load từ git source (d:\Bot_SEO\) trước bundle
+
+# Khi chạy .exe: thêm site-packages THẬT của Python để tránh lỗi
+# "No module named 'chromadb.api.rust'" và các extension bị thiếu trong bundle
+if getattr(sys, "frozen", False):
+    import site as _site
+    for _sp in _site.getsitepackages():
+        if _sp not in sys.path:
+            sys.path.append(_sp)
+
+# Custom modules (my_modules.py, module_kho_du_lieu.py...) ưu tiên từ git source
 sys.path.insert(0, PROJECT_DIR)
 
 # Chuyển CWD về Bot_SEO/ để tất cả đường dẫn tương đối hoạt động đúng
