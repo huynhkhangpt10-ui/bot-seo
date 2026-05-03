@@ -219,10 +219,61 @@
       <input id="sb-url2"    type="text" class="inp text-xs py-1.5"    placeholder="https://..." oninput="onCfgChange()"/>
     </div>
 
-    <div class="px-3 mt-auto pt-3 border-t border-gray-900">
+    <div class="px-3 border-t border-gray-900 pt-3">
+      <p class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">👤 Author Block:</p>
+      <label class="lbl">Chọn block:</label>
+      <div class="flex gap-1 mb-1">
+        <select id="sb-block-select" class="inp text-xs py-1 flex-1" onchange="onBlockSelect()">
+          <option value="">-- Chọn hoặc nhập tay --</option>
+        </select>
+        <button onclick="openBlockModal()" title="Quản lý blocks" class="bg-gray-800 hover:bg-gray-700 text-gray-300 rounded px-2 text-xs">✏️</button>
+      </div>
+      <label class="lbl">Author Block Code:</label>
+      <textarea id="sb-author-block" class="inp text-xs py-1.5 mb-2 resize-none h-12"
+                placeholder="[flatsome_block id=&quot;...&quot;]" oninput="onCfgChange()"></textarea>
+      <label class="lbl">Shortcode cuối bài:</label>
+      <textarea id="sb-shortcode" class="inp text-xs py-1.5 resize-none h-12"
+                placeholder="[flatsome_block id=&quot;...&quot;]" oninput="onCfgChange()"></textarea>
+    </div>
+
+    <div class="px-3 border-t border-gray-900 pt-3">
+      <button onclick="openFbModal()" class="w-full text-xs py-1.5 bg-blue-900 hover:bg-blue-800 text-blue-200 rounded mb-2">📘 Quản Lý Facebook Pages</button>
       <button onclick="luuCauHinh()" class="btn-red w-full text-xs py-2">💾 Lưu Cấu Hình Mặc Định</button>
     </div>
   </aside>
+
+  <!-- ═══ MODAL: AUTHOR BLOCKS ═══════════════════════════════════════════════ -->
+  <div id="block-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-white">✏️ Quản Lý Author Blocks</h3>
+        <button onclick="closeBlockModal()" class="text-gray-500 hover:text-white text-xl leading-none">×</button>
+      </div>
+      <div id="block-list" class="space-y-1 max-h-48 overflow-y-auto"></div>
+      <hr class="border-gray-700"/>
+      <p class="text-xs text-gray-400 font-semibold">Thêm / cập nhật block:</p>
+      <input id="new-block-name" class="inp text-xs" placeholder="Tên block (vd: Tác giả Khang)"/>
+      <textarea id="new-block-code" class="inp text-xs h-16 resize-none" placeholder="[flatsome_block id=&quot;123&quot;]"></textarea>
+      <button onclick="saveNewBlock()" class="btn-red w-full text-sm py-2">💾 Lưu Block</button>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL: FACEBOOK PAGES ══════════════════════════════════════════════ -->
+  <div id="fb-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-white">📘 Quản Lý Facebook Pages</h3>
+        <button onclick="closeFbModal()" class="text-gray-500 hover:text-white text-xl leading-none">×</button>
+      </div>
+      <div id="fb-page-list" class="space-y-1 max-h-48 overflow-y-auto"></div>
+      <hr class="border-gray-700"/>
+      <p class="text-xs text-gray-400 font-semibold">Thêm Page mới:</p>
+      <input id="fb-new-name"  class="inp text-xs" placeholder="Tên Page (để nhớ)"/>
+      <input id="fb-new-id"    class="inp text-xs" placeholder="Page ID"/>
+      <input id="fb-new-token" class="inp text-xs" placeholder="Page Access Token"/>
+      <button onclick="addFbPage()" class="btn-red w-full text-sm py-2">➕ Thêm Page</button>
+    </div>
+  </div>
 
   <!-- MAIN -->
   <div class="flex-1 flex flex-col overflow-hidden">
@@ -264,11 +315,15 @@
               <input id="t1-out-url" type="text" class="inp" placeholder="https://..."/>
             </div>
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2 flex-wrap">
             <button onclick="t1_buoc1()" class="btn-red">1️⃣ Lên Dàn Ý & Thẻ SEO</button>
             <button onclick="t1_buoc2()" id="btn-t1-b2" class="btn-red" disabled>2️⃣ Viết Bài</button>
             <button onclick="t1_dang()" id="btn-t1-dang" class="btn-ghost" disabled>📤 Đăng Bài</button>
             <button onclick="t1_luu()" id="btn-t1-luu" class="btn-ghost" disabled>💾 Lưu HTML</button>
+            <button onclick="t1_dang_day_du()" id="btn-t1-full" class="btn-red" disabled
+                    title="Pipeline đầy đủ: RAG + Google Search + Ảnh tự động">
+              🚀 Đăng Đầy Đủ (RAG+Search+Ảnh)
+            </button>
           </div>
         </div>
 
@@ -330,8 +385,9 @@
             </div>
           </div>
           <div id="t2-status" class="hidden card-inner text-xs text-green-400 mb-3">✅ Đã kết nối Google Sheets thành công!</div>
-          <div class="flex gap-2 mb-3">
+          <div class="flex gap-2 mb-3 flex-wrap">
             <button onclick="t2_ket_noi()" class="btn-ghost">🔗 Kết Nối Sheets</button>
+            <button onclick="t2_loc_y_dinh()" id="btn-t2-loc" class="btn-ghost" disabled>🧹 1. Quét &amp; Lọc Từ Khoá Trùng Lặp Ý Định</button>
             <button onclick="t2_khoi_dong()" id="btn-t2-auto" class="btn-red" disabled>⚡ 2. KHỞI ĐỘNG CỖ MÁY AUTO</button>
             <button onclick="t2_dung()" class="btn-ghost text-red-500">🛑 Dừng Khẩn Cấp</button>
           </div>
@@ -685,6 +741,8 @@ async function luuCauHinh() {
     url1: document.getElementById('sb-url1').value,
     anchor2: document.getElementById('sb-anchor2').value,
     url2: document.getElementById('sb-url2').value,
+    author_block_code: document.getElementById('sb-author-block').value,
+    flatsome_shortcode: document.getElementById('sb-shortcode').value,
   };
   await eel.luu_cau_hinh(cfg)();
   setStatus('💾 Đã lưu cấu hình!');
@@ -712,6 +770,8 @@ async function loadSidebar() {
     if (cfg.url1) document.getElementById('sb-url1').value = cfg.url1;
     if (cfg.anchor2) document.getElementById('sb-anchor2').value = cfg.anchor2;
     if (cfg.url2) document.getElementById('sb-url2').value = cfg.url2;
+    if (cfg.author_block_code) document.getElementById('sb-author-block').value = cfg.author_block_code;
+    if (cfg.flatsome_shortcode) document.getElementById('sb-shortcode').value = cfg.flatsome_shortcode;
   } catch(e) { console.warn('Sidebar load:', e); }
 }
 
@@ -765,6 +825,7 @@ async function t1_buoc2() {
   document.getElementById('t1-result').classList.remove('hidden');
   document.getElementById('btn-t1-dang').disabled = false;
   document.getElementById('btn-t1-luu').disabled = false;
+  document.getElementById('btn-t1-full').disabled = false;
   setStatus('✅ Bài viết xong: ' + td);
 }
 
@@ -801,6 +862,53 @@ async function t1_luu() {
   setStatus(r.ok ? '💾 Đã lưu: ' + r.path : '❌ ' + r.error);
 }
 
+async function t1_dang_day_du() {
+  const kw = document.getElementById('t1-kw').value.trim();
+  const td = document.getElementById('t1-tieude').value.trim();
+  const ol = document.getElementById('t1-outline').value.trim();
+  if (!kw) { alert('Nhập từ khoá!'); return; }
+
+  const cfgDang = {
+    cho_phep_web:  document.getElementById('cb-web').checked,
+    cho_phep_zalo: document.getElementById('cb-zalo').checked,
+    cho_phep_fb:   document.getElementById('cb-fb').checked,
+    dm_id:         document.getElementById('sb-dm').value,
+    tag_id:        document.getElementById('sb-tag').value,
+    trang_thai:    document.getElementById('sb-status').value,
+    anchor1:       document.getElementById('sb-anchor1').value,
+    url1:          document.getElementById('sb-url1').value,
+    anchor2:       document.getElementById('sb-anchor2').value,
+    url2:          document.getElementById('sb-url2').value,
+    anchor_out:    document.getElementById('t1-out-anchor').value,
+    url_out:       document.getElementById('t1-out-url').value,
+    author_block_code:  document.getElementById('sb-author-block').value,
+    flatsome_shortcode: document.getElementById('sb-shortcode').value,
+  };
+
+  document.getElementById('t1-log').innerHTML = '';
+  document.getElementById('t1-loading').classList.remove('hidden');
+  document.getElementById('btn-t1-full').disabled = true;
+
+  const r = await eel.dang_bai_thu_cong_full(kw, td, ol, cfgDang)();
+  setStatus(r.msg || (r.ok ? '🚀 Pipeline đang chạy...' : '❌ Lỗi'));
+}
+
+// Callback từ Python khi pipeline dang_bai_thu_cong_full xong
+eel.expose(tab1_full_done);
+function tab1_full_done(ok, link, msg) {
+  document.getElementById('t1-loading').classList.add('hidden');
+  document.getElementById('btn-t1-full').disabled = false;
+  if (ok) {
+    setStatus('✅ Đăng đầy đủ xong! ' + (link || ''));
+    if (link) {
+      const el = document.getElementById('t1-rtitle');
+      if (el) el.innerHTML += ` <a href="${link}" target="_blank" style="color:#006AF5;font-size:11px">[Xem bài →]</a>`;
+    }
+  } else {
+    setStatus('❌ Pipeline lỗi: ' + (msg || '').slice(0, 100));
+  }
+}
+
 // ══════════════════════════════════════════════════════════════
 // TAB 2 — TỰ ĐỘNG
 // ══════════════════════════════════════════════════════════════
@@ -813,6 +921,7 @@ async function t2_ket_noi() {
   if (!r.ok) { alert('Lỗi: ' + r.error); return; }
   document.getElementById('t2-status').classList.remove('hidden');
   document.getElementById('btn-t2-auto').disabled = false;
+  document.getElementById('btn-t2-loc').disabled = false;
   setStatus(`✅ Kết nối Sheets — ${r.so_hang} dòng, ${r.so_hang_doi} bài đang chờ`);
 
   // Hiển thị hàng đợi
@@ -844,6 +953,39 @@ async function t2_khoi_dong() {
 async function t2_dung() {
   await eel.dung_auto()();
   setStatus('🛑 Đã gửi lệnh dừng!');
+}
+
+async function t2_loc_y_dinh() {
+  const url = document.getElementById('t2-url').value.trim();
+  const tab = document.getElementById('t2-tab').value.trim() || 'Tukhoa';
+  if (!url) { alert('Nhập URL Sheets!'); return; }
+  const btn = document.getElementById('btn-t2-loc');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang quét...';
+  setStatus('🧹 AI đang phân tích Search Intent...');
+  document.getElementById('t2-log-wrap').classList.remove('hidden');
+  appendLog('t2-log', '🧹 Bắt đầu quét & lọc từ khoá trùng lặp ý định...');
+
+  const r = await eel.loc_y_dinh_tu_khoa(url, tab)();
+  appendLog('t2-log', r.msg || (r.ok ? '✅ Xong!' : '❌ Lỗi'));
+  setStatus(r.msg || '');
+  btn.disabled = false;
+  btn.textContent = '🧹 1. Quét & Lọc Từ Khoá Trùng Lặp Ý Định';
+
+  // Tải lại hàng đợi sau khi lọc
+  if (r.ok) {
+    const queue = await eel.lay_hang_doi()();
+    const qEl = document.getElementById('t2-queue');
+    if (queue.length === 0) {
+      qEl.innerHTML = '<p class="text-gray-600 italic">Sạch sẽ! Không còn bài nào đang chờ.</p>';
+    } else {
+      qEl.innerHTML = queue.map((kw, i) =>
+        `<div class="flex items-center gap-2 py-1 border-b border-gray-900">
+           <span class="text-gray-600">${i+1}.</span>
+           <span class="text-slate-300">${kw}</span>
+         </div>`).join('');
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1220,12 +1362,143 @@ setTimeout(async () => {
 }, 5000);
 
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// AUTHOR BLOCKS MODAL
+// ══════════════════════════════════════════════════════════════
+let _blocksList = [];
+
+async function loadBlocks() {
+  _blocksList = await eel.lay_danh_sach_blocks()() || [];
+  renderBlockSelect();
+}
+
+function renderBlockSelect() {
+  const sel = document.getElementById('sb-block-select');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Chọn hoặc nhập tay --</option>';
+  _blocksList.forEach(b => {
+    const o = document.createElement('option');
+    o.value = b.name; o.textContent = b.name;
+    sel.appendChild(o);
+  });
+  if (cur) sel.value = cur;
+
+  const listEl = document.getElementById('block-list');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  if (!_blocksList.length) {
+    listEl.innerHTML = '<p class="text-xs text-gray-500 italic">Chưa có block nào.</p>';
+    return;
+  }
+  _blocksList.forEach(b => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 bg-gray-800 rounded px-2 py-1';
+    const safeName = b.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const safeCode = b.code.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');
+    row.innerHTML = `<span class="text-xs text-gray-300 flex-1 truncate">${b.name}</span>
+      <button onclick="loadBlockToForm('${safeName}','${safeCode}')" class="text-xs text-blue-400 hover:text-blue-300">Sửa</button>
+      <button onclick="deleteBlock('${safeName}')" class="text-xs text-red-400 hover:text-red-300">Xoá</button>`;
+    listEl.appendChild(row);
+  });
+}
+
+function onBlockSelect() {
+  const name = document.getElementById('sb-block-select').value;
+  if (!name) return;
+  const b = _blocksList.find(x => x.name === name);
+  if (b) { document.getElementById('sb-author-block').value = b.code; onCfgChange(); }
+}
+
+function openBlockModal() {
+  renderBlockSelect();
+  document.getElementById('block-modal').classList.remove('hidden');
+}
+function closeBlockModal() { document.getElementById('block-modal').classList.add('hidden'); }
+
+function loadBlockToForm(name, code) {
+  document.getElementById('new-block-name').value = name;
+  document.getElementById('new-block-code').value = code.replace(/\\n/g,'\n');
+}
+
+async function saveNewBlock() {
+  const name = document.getElementById('new-block-name').value.trim();
+  const code = document.getElementById('new-block-code').value.trim();
+  if (!name || !code) { alert('Nhập đủ tên và code!'); return; }
+  const r = await eel.luu_block_moi(name, code)();
+  if (r.ok) { _blocksList = r.blocks; renderBlockSelect(); alert('✅ Đã lưu block: ' + name); }
+  else alert('❌ ' + r.error);
+}
+
+async function deleteBlock(name) {
+  if (!confirm('Xoá block "' + name + '"?')) return;
+  const r = await eel.xoa_block(name)();
+  if (r.ok) { _blocksList = r.blocks; renderBlockSelect(); }
+}
+
+// ══════════════════════════════════════════════════════════════
+// FACEBOOK PAGES MODAL
+// ══════════════════════════════════════════════════════════════
+let _fbPages = [];
+
+async function loadFbPages() {
+  _fbPages = await eel.lay_fb_pages()() || [];
+  renderFbPages();
+}
+
+function renderFbPages() {
+  const el = document.getElementById('fb-page-list');
+  if (!el) return;
+  el.innerHTML = '';
+  if (!_fbPages.length) {
+    el.innerHTML = '<p class="text-xs text-gray-500 italic">Chưa có page nào.</p>'; return;
+  }
+  _fbPages.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 bg-gray-800 rounded px-2 py-1.5';
+    row.innerHTML = `<div class="flex-1 min-w-0">
+        <p class="text-xs font-semibold text-blue-300 truncate">${p.name}</p>
+        <p class="text-xs text-gray-500 truncate">ID: ${p.page_id}</p>
+      </div>
+      <button onclick="deleteFbPage('${p.page_id}')" class="text-xs text-red-400 hover:text-red-300 shrink-0">Xoá</button>`;
+    el.appendChild(row);
+  });
+}
+
+async function openFbModal() {
+  await loadFbPages();
+  document.getElementById('fb-modal').classList.remove('hidden');
+}
+function closeFbModal() { document.getElementById('fb-modal').classList.add('hidden'); }
+
+async function addFbPage() {
+  const name  = document.getElementById('fb-new-name').value.trim();
+  const pid   = document.getElementById('fb-new-id').value.trim();
+  const token = document.getElementById('fb-new-token').value.trim();
+  if (!name || !pid || !token) { alert('Nhập đủ Tên, Page ID và Access Token!'); return; }
+  const r = await eel.them_fb_page(name, pid, token)();
+  if (r.ok) {
+    _fbPages = r.pages; renderFbPages();
+    document.getElementById('fb-new-name').value = '';
+    document.getElementById('fb-new-id').value = '';
+    document.getElementById('fb-new-token').value = '';
+    alert('✅ Đã thêm page: ' + name);
+  } else alert('❌ ' + r.error);
+}
+
+async function deleteFbPage(pageId) {
+  if (!confirm('Xoá page này?')) return;
+  const r = await eel.xoa_fb_page(pageId)();
+  if (r.ok) { _fbPages = r.pages; renderFbPages(); }
+}
+
+// ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
 window.addEventListener('load', () => {
   setTimeout(() => {
     loadSidebar();
     rag_stats();
+    loadBlocks();
   }, 600);
 });
 </script>

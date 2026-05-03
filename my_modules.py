@@ -555,6 +555,11 @@ def quy_trinh_dang_bai_full(
                     tk_auto, cap_nhat_trang_thai_func
                 )
             except Exception as e:
+                import traceback as _tb
+                cap_nhat_trang_thai_func(
+                    f"⚠️ RAG lỗi (bỏ qua): {str(e)[:120]}"
+                )
+                print(f"[RAG-ERR] {e}\n{_tb.format_exc()}", flush=True)
                 tai_lieu_kho = ""
 
             # 4. GỘP CHUNG KHO VÀ MẠNG VÀO 1 PROMPT (HYBRID RAG)

@@ -5,10 +5,11 @@ import fitz  # PyMuPDF
 from datetime import datetime
 import hashlib  # Thêm thư viện Hashing chống trùng
 
-# Đường dẫn kho
-THU_MUC_KHO = "./Kho_Du_Lieu_Vector"
-THU_MUC_TAI_LIEU = "./Nguon_Tai_Lieu_Tho"
-FILE_LOG = "nhat_ky_nap_kho.txt"
+# Đường dẫn kho — tuyệt đối theo vị trí file, tránh lỗi CWD
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+THU_MUC_KHO     = os.path.join(_BASE_DIR, "Kho_Du_Lieu_Vector")
+THU_MUC_TAI_LIEU = os.path.join(_BASE_DIR, "Nguon_Tai_Lieu_Tho")
+FILE_LOG         = os.path.join(_BASE_DIR, "nhat_ky_nap_kho.txt")
 
 
 def ghi_log(noi_dung):

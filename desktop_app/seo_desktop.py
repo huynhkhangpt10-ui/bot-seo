@@ -16,7 +16,8 @@ else:
     PROJECT_DIR = os.path.dirname(BUNDLE_DIR)
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(PROJECT_DIR, "vertex-key.json")
 
-WEB_DIR = os.path.join(BUNDLE_DIR, "web")
+WEB_DIR     = os.path.join(BUNDLE_DIR, "web")
+STOP_FILE   = os.path.join(PROJECT_DIR, "stop_auto.txt")   # tuyệt đối, tránh lỗi CWD
 sys.path.insert(0, PROJECT_DIR)
 
 # Chuyển CWD về Bot_SEO/ để tất cả đường dẫn tương đối hoạt động đúng
@@ -146,8 +147,11 @@ def tai_cau_hinh():
 @eel.expose
 def luu_cau_hinh(cfg: dict):
     try:
+        # Merge với config hiện có để không mất blocks_list v.v. khi sidebar save
+        existing = tai_cau_hinh()
+        existing.update(cfg)
         with open(UI_FILE, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, ensure_ascii=False, indent=2)
+            json.dump(existing, f, ensure_ascii=False, indent=2)
         return {"ok": True}
     except Exception as e:
         return {"ok": False, "error": str(e)}
@@ -325,6 +329,7 @@ def tao_bai(tu_khoa: str, so_trang: int = 5, nguon: str = "google") -> dict:
         return {"ok": False, "error": str(e)}
 
 # ════════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════════════════
 # TAB 2 — TỰ ĐỘNG GOOGLE SHEETS
 # ════════════════════════════════════════════════════════════════════════════════
 
@@ -411,11 +416,12 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
 
             # ── Đọc cấu hình sidebar (ui_settings.json) ─────────────────────
             cfg = tai_cau_hinh()
-            trang_thai_wp = "publish"
+            # Frontend lưu: "publish" | "draft" | "future"
             st_cfg = cfg.get("trang_thai", "publish")
-            if "Lên lịch" in st_cfg:   trang_thai_wp = "scheduled"
-            elif "Đăng nóng" in st_cfg: trang_thai_wp = "publish_now"
-            else:                        trang_thai_wp = "draft"
+            if st_cfg == "future":      trang_thai_wp = "scheduled"
+            elif st_cfg == "draft":     trang_thai_wp = "draft"
+            else:                       trang_thai_wp = "publish_now"
+            _push_log("log_tab2", f"📋 Trạng thái WP: {trang_thai_wp} (raw='{st_cfg}')")
 
             # Lấy category/tag IDs
             danh_sach_dm_id = []
@@ -447,10 +453,14 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
             col_tt   = cols.index("Trạng thái") + 1
             col_link = cols.index("Link bài viết") + 1 if "Link bài viết" in cols else None
 
+            # Xoá stop cũ (nếu có) trước khi bắt đầu
+            if os.path.exists(STOP_FILE):
+                os.remove(STOP_FILE)
+
             dem = 0
             for idx, row in hang_doi.iterrows():
-                if os.path.exists("stop_auto.txt"):
-                    os.remove("stop_auto.txt")
+                if os.path.exists(STOP_FILE):
+                    os.remove(STOP_FILE)
                     _push_log("log_tab2", "🛑 Nhận lệnh dừng khẩn cấp!")
                     break
 
@@ -528,8 +538,17 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
                 if dem < len(hang_doi):
                     sleep_s = random.randint(300, 600)
                     _push_log("log_tab2",
-                              f"☕ Nghỉ {sleep_s//60}p{sleep_s%60}s trước bài tiếp...")
-                    time.sleep(sleep_s)
+                              f"☕ Nghỉ {sleep_s//60}p{sleep_s%60}s trước bài tiếp... (Nhấn Dừng để bỏ qua)")
+                    # Sleep interruptible: kiểm tra stop file mỗi 10 giây
+                    for _ in range(sleep_s // 10):
+                        if os.path.exists(STOP_FILE):
+                            os.remove(STOP_FILE)
+                            _push_log("log_tab2", "🛑 Nhận lệnh dừng trong lúc nghỉ!")
+                            dem = len(hang_doi)  # force exit outer loop
+                            break
+                        time.sleep(10)
+                    if dem >= len(hang_doi):
+                        break
 
             _push_log("log_tab2", f"\n🎉 Hoàn tất! Đã viết {dem}/{len(hang_doi)} bài")
             eel.tab2_done()()
@@ -543,9 +562,243 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
 
 @eel.expose
 def dung_auto():
-    with open("stop_auto.txt", "w") as f:
-        f.write("stop")
-    return {"ok": True}
+    """Tạo file stop để dừng vòng lặp auto ngay lập tức."""
+    try:
+        with open(STOP_FILE, "w") as f:
+            f.write("stop")
+        return {"ok": True, "msg": "🛑 Đã gửi lệnh dừng — đang dừng sau bước hiện tại!"}
+    except Exception as e:
+        return {"ok": False, "msg": str(e)}
+
+@eel.expose
+def loc_y_dinh_tu_khoa(gs_url: str, tab_name: str = "Tukhoa") -> dict:
+    """Quét & lọc từ khoá trùng lặp ý định tìm kiếm bằng Gemini Flash."""
+    try:
+        import gspread, pandas as pd
+        gc = gspread.service_account(filename=GOOGLE_KEY_PATH)
+        sh = gc.open_by_url(gs_url)
+        ws = sh.worksheet(tab_name)
+        data = ws.get_all_records()
+        df = pd.DataFrame(data)
+
+        if df.empty or "Trạng thái" not in df.columns or "Từ khóa" not in df.columns:
+            return {"ok": False, "msg": "Sheet trống hoặc thiếu cột 'Trạng thái'/'Từ khóa'"}
+
+        cols = df.columns.tolist()
+        col_tt = cols.index("Trạng thái") + 1
+
+        list_tk = df[df["Trạng thái"].astype(str).str.strip() == ""]["Từ khóa"].tolist()
+        if not list_tk:
+            return {"ok": True, "loai_bo": 0, "msg": "Không có từ khoá nào đang chờ xử lý."}
+
+        prompt_loc = (
+            "Bạn là chuyên gia SEO. Dưới đây là danh sách từ khóa.\n"
+            "Nhiệm vụ: Phân tích Ý định tìm kiếm (Search Intent). Nếu có các từ khóa "
+            "khác chữ nhưng mang cùng 1 ý định tìm kiếm, hãy chọn 1 từ hay nhất để "
+            "giữ lại, và LOẠI BỎ từ còn lại.\n"
+            "TRẢ VỀ DUY NHẤT danh sách các từ khóa CẦN BỊ LOẠI BỎ, mỗi từ khóa cách "
+            "nhau bởi dấu |. Nếu không có từ nào bị trùng, trả về KHONG_CO.\n"
+            f"Danh sách: {list_tk}"
+        )
+
+        res_loc = client.models.generate_content(
+            model="gemini-2.5-flash", contents=prompt_loc
+        )
+        tu_khoa_loai_bo = [
+            tk.strip()
+            for tk in res_loc.text.strip().split("|")
+            if tk.strip()
+        ]
+
+        count_loai = 0
+        if "KHONG_CO" not in tu_khoa_loai_bo:
+            for idx, row in df.iterrows():
+                if str(row.get("Từ khóa", "")).strip() in tu_khoa_loai_bo:
+                    row_sheet = idx + 2
+                    try:
+                        ws.update_cell(row_sheet, col_tt, "Trùng lặp ý định (Bỏ qua)")
+                    except Exception:
+                        pass
+                    count_loai += 1
+
+        return {
+            "ok": True,
+            "loai_bo": count_loai,
+            "msg": f"✅ Đã quét xong! Loại bỏ {count_loai} từ khoá trùng lặp ý định."
+        }
+    except Exception as e:
+        return {"ok": False, "msg": str(e)}
+
+
+@eel.expose
+def lay_danh_sach_blocks() -> list:
+    """Trả về danh sách author blocks [{name, code}] từ ui_settings.json."""
+    try:
+        cfg = tai_cau_hinh()
+        return cfg.get("blocks_list", [])
+    except Exception:
+        return []
+
+@eel.expose
+def luu_block_moi(name: str, code: str) -> dict:
+    """Lưu một block mới vào danh sách."""
+    try:
+        cfg = tai_cau_hinh()
+        blocks = cfg.get("blocks_list", [])
+        # Cập nhật nếu trùng tên, thêm mới nếu chưa có
+        for b in blocks:
+            if b.get("name") == name:
+                b["code"] = code
+                break
+        else:
+            blocks.append({"name": name, "code": code})
+        cfg["blocks_list"] = blocks
+        luu_cau_hinh(cfg)
+        return {"ok": True, "blocks": blocks}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@eel.expose
+def xoa_block(name: str) -> dict:
+    """Xoá một block theo tên."""
+    try:
+        cfg = tai_cau_hinh()
+        blocks = [b for b in cfg.get("blocks_list", []) if b.get("name") != name]
+        cfg["blocks_list"] = blocks
+        luu_cau_hinh(cfg)
+        return {"ok": True, "blocks": blocks}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@eel.expose
+def them_fb_page(name: str, page_id: str, access_token: str) -> dict:
+    """Thêm hoặc cập nhật một Facebook Page."""
+    try:
+        pages = lay_fb_pages()
+        for p in pages:
+            if p.get("page_id") == page_id:
+                p["name"] = name
+                p["access_token"] = access_token
+                luu_fb_pages(pages)
+                return {"ok": True, "pages": pages}
+        pages.append({"name": name, "page_id": page_id, "access_token": access_token})
+        luu_fb_pages(pages)
+        return {"ok": True, "pages": pages}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@eel.expose
+def xoa_fb_page(page_id: str) -> dict:
+    """Xoá một Facebook Page theo page_id."""
+    try:
+        pages = [p for p in lay_fb_pages() if p.get("page_id") != page_id]
+        luu_fb_pages(pages)
+        return {"ok": True, "pages": pages}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+@eel.expose
+def dang_bai_thu_cong_full(tu_khoa: str, tieu_de: str, outline: str,
+                             cfg_dang: dict) -> dict:
+    """Đăng bài đầy đủ: RAG + Search + Ảnh + WordPress + Zalo + Facebook."""
+    tu_khoa = tu_khoa.strip()
+    if not tu_khoa:
+        return {"ok": False, "link": "", "msg": "Thiếu từ khoá!"}
+
+    def _worker():
+        try:
+            from my_modules import (quy_trinh_dang_bai_full,
+                                    reset_dem_so_bai)
+
+            def cb(msg): _push_log("log_tab1", msg)
+
+            cfg = tai_cau_hinh()
+
+            # Resolve category / tag IDs
+            danh_sach_dm_id = []
+            danh_sach_the_id = []
+            try:
+                dm_val = cfg_dang.get("dm_id") or cfg.get("danh_muc", "")
+                if dm_val:
+                    cats = lay_wp_categories()
+                    danh_sach_dm_id = [
+                        c["id"] for c in cats
+                        if str(c.get("id")) == str(dm_val) or c.get("name") == dm_val
+                    ]
+            except Exception: pass
+            try:
+                tag_val = cfg_dang.get("tag_id") or cfg.get("tag", "")
+                if tag_val:
+                    tags = lay_wp_tags()
+                    danh_sach_the_id = [
+                        t["id"] for t in tags
+                        if str(t.get("id")) == str(tag_val)
+                    ]
+            except Exception: pass
+
+            trang_thai_wp = cfg_dang.get("trang_thai") or cfg.get("trang_thai", "publish")
+
+            author_block_code  = cfg_dang.get("author_block_code") or cfg.get("author_block_code", "")
+            flatsome_shortcode = cfg_dang.get("flatsome_shortcode") or cfg.get("flatsome_shortcode", "")
+
+            cho_phep_web   = bool(cfg_dang.get("cho_phep_web",  True))
+            cho_phep_zalo  = bool(cfg_dang.get("cho_phep_zalo", False))
+            cho_phep_fb    = bool(cfg_dang.get("cho_phep_fb",   False))
+
+            anchor1    = cfg_dang.get("anchor1")    or cfg.get("anchor1", "")
+            url1       = cfg_dang.get("url1")       or cfg.get("url1", "")
+            anchor2    = cfg_dang.get("anchor2")    or cfg.get("anchor2", "")
+            url2       = cfg_dang.get("url2")       or cfg.get("url2", "")
+            anchor_out = cfg_dang.get("anchor_out", "")
+            url_out    = cfg_dang.get("url_out",    "")
+
+            # Xây kho link từ sidebar
+            kho_link_list = []
+            if anchor1 and url1:
+                kho_link_list.append({"row": 1, "anchor": anchor1, "url": url1})
+            if anchor2 and url2:
+                kho_link_list.append({"row": 2, "anchor": anchor2, "url": url2})
+            if anchor_out and url_out:
+                kho_link_list.append({"row": 3, "anchor": anchor_out, "url": url_out})
+
+            reset_dem_so_bai()
+            cb(f"🚀 Bắt đầu đăng bài đầy đủ: «{tu_khoa}»...")
+
+            thanh_cong, msg_tt, link_bai = quy_trinh_dang_bai_full(
+                tk_auto               = tu_khoa,
+                tieu_de_excel         = tieu_de,
+                danh_sach_api_keys    = [],
+                kho_link_list         = kho_link_list,
+                ws_kho                = None,
+                author_block_code     = author_block_code,
+                flatsome_shortcode    = flatsome_shortcode,
+                danh_sach_dm_id_auto  = danh_sach_dm_id,
+                danh_sach_the_id_auto = danh_sach_the_id,
+                trang_thai_wp         = trang_thai_wp,
+                cap_nhat_trang_thai_func = cb,
+                cho_phep_zalo         = cho_phep_zalo,
+                cho_phep_facebook     = cho_phep_fb,
+                cho_phep_web          = cho_phep_web,
+            )
+
+            if thanh_cong:
+                cb(f"✅ Xong! Link bài: {link_bai}")
+                eel.tab1_full_done(True, link_bai, msg_tt)()
+            else:
+                cb(f"❌ Lỗi: {msg_tt}")
+                eel.tab1_full_done(False, "", msg_tt)()
+
+        except Exception as e:
+            import traceback
+            err = f"❌ Lỗi hệ thống: {e}\n{traceback.format_exc()[-400:]}"
+            _push_log("log_tab1", err)
+            try: eel.tab1_full_done(False, "", str(e))()
+            except Exception: pass
+
+    threading.Thread(target=_worker, daemon=True).start()
+    return {"ok": True, "msg": "🚀 Đã khởi động pipeline đầy đủ — xem log bên dưới!"}
+
 
 # ════════════════════════════════════════════════════════════════════════════════
 # TAB 3 — BÁC SĨ SEO
