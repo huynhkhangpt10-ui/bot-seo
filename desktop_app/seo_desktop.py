@@ -1305,28 +1305,62 @@ def cao_web_bat_dau(urls: list, thu_muc: str = "./Nguon_Tai_Lieu_Tho",
             from playwright.sync_api import sync_playwright
             _MODEL = "gemini-2.5-flash"
 
+            _LAUNCH_ARGS = ["--disable-web-security", "--no-sandbox",
+                            "--disable-gpu", "--disable-dev-shm-usage"]
+
             def _launch_chromium(pw):
+                # Ưu tiên 1: Playwright chromium thường (headless)
                 try:
-                    return pw.chromium.launch(headless=True,
-                        args=["--disable-web-security","--no-sandbox"])
-                except Exception as e:
-                    msg = str(e)
-                    if "Executable doesn't exist" not in msg and "Please run the following command" not in msg:
+                    return pw.chromium.launch(headless=True, args=_LAUNCH_ARGS)
+                except Exception as e1:
+                    if "Executable doesn't exist" not in str(e1) and "Please run" not in str(e1):
                         raise
-                    _push_log("log_cao_web", "⚙️ Playwright thiếu Chromium, đang tự cài browser...")
-                    # Phải dùng Python thật (không phải AutoSEO.exe) để cài playwright
-                    import shutil as _sh
-                    _real_python = _sh.which("python") or _sh.which("python3") or sys.executable
+
+                # Ưu tiên 2: Google Chrome đã cài trên máy
+                _push_log("log_cao_web", "⚙️ Playwright headless shell thiếu, thử dùng Chrome/Edge hệ thống...")
+                chrome_paths = [
+                    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                    r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+                    os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+                ]
+                for _chrome in chrome_paths:
+                    if os.path.isfile(_chrome):
+                        try:
+                            _push_log("log_cao_web", f"✅ Dùng Chrome: {_chrome}")
+                            return pw.chromium.launch(executable_path=_chrome,
+                                                      headless=True, args=_LAUNCH_ARGS)
+                        except Exception:
+                            continue
+
+                # Ưu tiên 3: Microsoft Edge
+                edge_paths = [
+                    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+                    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+                ]
+                for _edge in edge_paths:
+                    if os.path.isfile(_edge):
+                        try:
+                            _push_log("log_cao_web", f"✅ Dùng Edge: {_edge}")
+                            return pw.chromium.launch(executable_path=_edge,
+                                                      headless=True, args=_LAUNCH_ARGS)
+                        except Exception:
+                            continue
+
+                # Ưu tiên 4: Cài playwright chromium qua Python thật
+                import shutil as _sh
+                _real_python = _sh.which("python") or _sh.which("python3")
+                if _real_python:
+                    _push_log("log_cao_web", "⚙️ Đang tải Chromium (lần đầu ~200MB, chờ vài phút)...")
                     try:
                         subprocess.run([_real_python, "-m", "playwright", "install", "chromium"],
                                        check=True, timeout=600)
-                    except Exception as _install_err:
-                        _push_log("log_cao_web", f"❌ Không thể tự cài Chromium: {_install_err}")
-                        _push_log("log_cao_web", "💡 Hãy mở CMD và chạy: python -m playwright install chromium")
-                        raise
-                    _push_log("log_cao_web", "✅ Đã cài Chromium cho Playwright, đang chạy lại...")
-                    return pw.chromium.launch(headless=True,
-                        args=["--disable-web-security","--no-sandbox"])
+                        _push_log("log_cao_web", "✅ Tải xong, đang khởi động...")
+                        return pw.chromium.launch(headless=True, args=_LAUNCH_ARGS)
+                    except Exception as _e4:
+                        _push_log("log_cao_web", f"❌ Không cài được Chromium: {_e4}")
+
+                _push_log("log_cao_web", "💡 Giải pháp: Mở CMD → python -m playwright install chromium")
+                raise RuntimeError("Không tìm thấy browser. Hãy chạy: python -m playwright install chromium")
 
             def _kiem_tra(text):
                 if not loc_ai: return True
