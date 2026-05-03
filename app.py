@@ -1172,12 +1172,16 @@ with tab5:
     st.caption(f"Nhai tất cả PDF/TXT trong `{_TAI_LIEU_PATH}`")
 
     col_b1, col_b2, col_b3 = st.columns(3)
+    _RAG_PAGE_SIZE = 20
+
     with col_b1:
         if st.button("🧠 Nhai Thư Mục", type="primary", key="rag_nap"):
             with st.spinner("Đang nhai tài liệu vào kho..."):
                 try:
                     import nap_tai_lieu
                     nap_tai_lieu.nap_vao_kho()
+                    st.session_state.pop("rag_view_snapshot", None)
+                    st.session_state.pop("rag_list_page", None)
                     st.success("🎉 Nhai xong! Kho đã được cập nhật.")
                     st.rerun()
                 except Exception as _e:
@@ -1187,43 +1191,16 @@ with tab5:
         if st.button("👁️ Xem Kho", key="rag_xem"):
             _rag = rag_lay_du_lieu_xem_kho(5)
             if _rag.get("loi") and _rag["so_chunks"] == 0:
+                st.session_state.pop("rag_view_snapshot", None)
+                st.session_state.pop("rag_list_page", None)
                 st.warning(f"Kho rỗng hoặc lỗi: {_rag['loi']}")
             elif _rag["so_chunks"] == 0:
+                st.session_state.pop("rag_view_snapshot", None)
+                st.session_state.pop("rag_list_page", None)
                 st.warning("🪣 Kho đang rỗng — chưa có dữ liệu nào được nhai vào.")
             else:
-                st.success(
-                    f"✅ Kho có **{_rag['so_chunks']:,} chunks** từ **{_rag['so_file']} file**"
-                )
-                st.markdown("##### 📑 Danh sách file (đánh số — 2 cột)")
-                _mono = (
-                    "font-family:Consolas,'Cascadia Code','Courier New',monospace;"
-                    "font-size:12px;color:#c9d1d9;line-height:1.45;word-break:break-all;"
-                )
-                _cL, _cR = st.columns(2)
-                with _cL:
-                    st.markdown(
-                        f"<div style='{_mono}'>" +
-                        "<br>".join(_rag["cot_trai"]) +
-                        "</div>",
-                        unsafe_allow_html=True,
-                    )
-                with _cR:
-                    st.markdown(
-                        f"<div style='{_mono}'>" +
-                        "<br>".join(_rag["cot_phai"]) +
-                        "</div>",
-                        unsafe_allow_html=True,
-                    )
-                st.markdown("**📝 Mẫu nội dung (5 đoạn đầu):**")
-                for _it in _rag.get("mau", []):
-                    _fn, _pv = _it.get("file", ""), _it.get("preview", "")
-                    st.markdown(
-                        f"<div style='background:#1e2530;border-left:3px solid #4a90d9;"
-                        f"padding:8px 12px;border-radius:4px;margin:4px 0;"
-                        f"font-size:12px;color:#cdd6e3'>"
-                        f"<span style='color:#6b9bbd;font-size:11px'>📄 {_fn}</span><br>{_pv}...</div>",
-                        unsafe_allow_html=True,
-                    )
+                st.session_state["rag_view_snapshot"] = _rag
+                st.session_state["rag_list_page"] = 0
 
     with col_b3:
         if st.button("🗑️ Xoá Kho RAG", key="rag_xoa", type="secondary"):
@@ -1232,10 +1209,73 @@ with tab5:
                 import module_kho_du_lieu as _mkdl
                 cli = _chroma.PersistentClient(path=_mkdl.THU_MUC_KHO)
                 cli.delete_collection("tai_lieu_seo")
+                st.session_state.pop("rag_view_snapshot", None)
+                st.session_state.pop("rag_list_page", None)
                 st.success("✅ Đã xoá sạch kho RAG!")
                 st.rerun()
             except Exception as _e:
                 st.error(f"❌ {_e}")
+
+    # ── Hiển thị kho (1 cột rộng + phân trang 20 dòng) ──────────
+    _snap = st.session_state.get("rag_view_snapshot")
+    if _snap and _snap.get("so_chunks", 0) > 0:
+        st.success(
+            f"✅ Kho có **{_snap['so_chunks']:,} chunks** từ **{_snap['so_file']} file**"
+        )
+        st.markdown("##### 📑 Danh sách file (1 cột — **20 dòng/trang**)")
+
+        _files = _snap["files"]
+        _total = len(_files)
+        _total_pages = max(1, (_total + _RAG_PAGE_SIZE - 1) // _RAG_PAGE_SIZE)
+        if "rag_list_page" not in st.session_state:
+            st.session_state.rag_list_page = 0
+        _pg = int(st.session_state.rag_list_page)
+        _pg = max(0, min(_pg, _total_pages - 1))
+        st.session_state.rag_list_page = _pg
+
+        _p1, _p2, _p3 = st.columns([1, 4, 1])
+        with _p1:
+            if st.button("◀ Trước", key="rag_prev", disabled=_pg <= 0):
+                st.session_state.rag_list_page = _pg - 1
+                st.rerun()
+        with _p2:
+            _from = _pg * _RAG_PAGE_SIZE + 1
+            _to = min((_pg + 1) * _RAG_PAGE_SIZE, _total)
+            st.caption(
+                f"Trang **{_pg + 1}** / **{_total_pages}** — "
+                f"file **{_from}**–**{_to}** / {_total}"
+            )
+        with _p3:
+            if st.button("Sau ▶", key="rag_next", disabled=_pg >= _total_pages - 1):
+                st.session_state.rag_list_page = _pg + 1
+                st.rerun()
+
+        _start = _pg * _RAG_PAGE_SIZE
+        _slice = _files[_start : _start + _RAG_PAGE_SIZE]
+        _lines = [
+            f"{_nm} {_start + _i + 1}."
+            for _i, _nm in enumerate(_slice)
+        ]
+        _mono = (
+            "font-family:Consolas,'Cascadia Code','Courier New',monospace;"
+            "font-size:12px;color:#c9d1d9;line-height:1.5;word-break:break-all;"
+            "width:100%;"
+        )
+        st.markdown(
+            f"<div style='{_mono}'>" + "<br>".join(_lines) + "</div>",
+            unsafe_allow_html=True,
+        )
+
+        st.markdown("**📝 Mẫu nội dung (5 đoạn đầu):**")
+        for _it in _snap.get("mau", []):
+            _fn, _pv = _it.get("file", ""), _it.get("preview", "")
+            st.markdown(
+                f"<div style='background:#1e2530;border-left:3px solid #4a90d9;"
+                f"padding:8px 12px;border-radius:4px;margin:4px 0;"
+                f"font-size:12px;color:#cdd6e3'>"
+                f"<span style='color:#6b9bbd;font-size:11px'>📄 {_fn}</span><br>{_pv}...</div>",
+                unsafe_allow_html=True,
+            )
 
 # ----------------- TAB 6: CÀO WEB SANG PDF -----------------
 with tab6:
