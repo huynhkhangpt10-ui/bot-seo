@@ -1306,7 +1306,9 @@ def cao_web_bat_dau(urls: list, thu_muc: str = "./Nguon_Tai_Lieu_Tho",
             _MODEL = "gemini-2.5-flash"
 
             _LAUNCH_ARGS = ["--disable-web-security", "--no-sandbox",
-                            "--disable-gpu", "--disable-dev-shm-usage"]
+                            "--disable-gpu", "--disable-dev-shm-usage",
+                            "--ignore-certificate-errors",
+                            "--ignore-ssl-errors"]
 
             def _launch_chromium(pw):
                 # Ưu tiên 1: Playwright chromium thường (headless)
