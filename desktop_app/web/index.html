@@ -714,8 +714,22 @@ function cao_web_done(msg) {
 function appendLog(id, msg) {
   const el = document.getElementById(id);
   if (!el) return;
+  const text = (msg || '').replace(/\*\*/g, '');
+  // Gộp message trùng liên tiếp thành (x2), (x3)...
+  const last = el.lastElementChild;
+  if (last) {
+    const base = last.dataset.base || last.textContent;
+    if (base === text) {
+      const count = parseInt(last.dataset.count || '1') + 1;
+      last.dataset.count = count;
+      last.dataset.base = base;
+      last.textContent = `${text}  (x${count})`;
+      el.scrollTop = el.scrollHeight;
+      return;
+    }
+  }
   const d = document.createElement('div');
-  d.textContent = (msg || '').replace(/\*\*/g, '');
+  d.textContent = text;
   el.appendChild(d);
   el.scrollTop = el.scrollHeight;
 }

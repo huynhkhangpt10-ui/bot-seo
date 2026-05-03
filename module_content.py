@@ -50,13 +50,19 @@ def sinh_dan_y(tk_auto, tieu_de_excel, lenh_tim_kiem_ai, cap_nhat_trang_thai_fun
                                         nguon_doc.append({'uri': uri, 'title': title})
                     if nguon_doc:
                         links_str = ""
+                        try:
+                            from urllib.parse import urlparse as _urlparse
+                        except Exception:
+                            _urlparse = None
                         for i, item in enumerate(nguon_doc):
-                            # Nếu Google có trả về Tiêu đề thì in Tiêu đề, không thì in Link 1, Link 2
                             ten_hien_thi = item['title'] if item['title'] else f"Link nguồn {i+1}"
-                            # Bọc link bằng Markdown để giao diện Streamlit ẩn đi cái đuôi vertexaisearch dài dòng
-                            links_str += f"\n👉 [{ten_hien_thi}]({item['uri']})"
-                            
-                        cap_nhat_trang_thai_func(f"🌐 **[KIỂM DUYỆT SỰ THẬT] AI ĐÃ ĐỌC CÁC BÀI SAU ĐỂ LÊN DÀN Ý:**{links_str}")
+                            if _urlparse:
+                                site = _urlparse(item['uri']).netloc.replace('www.', '')
+                            else:
+                                site = item['uri'][:40]
+                            links_str += f"\n👉 {ten_hien_thi} ({site})"
+
+                        cap_nhat_trang_thai_func(f"🌐 [KIỂM DUYỆT SỰ THẬT] AI ĐÃ ĐỌC CÁC BÀI SAU ĐỂ LÊN DÀN Ý:{links_str}")
                 except Exception as e:
                     pass
                 # ==========================================================
@@ -181,11 +187,19 @@ def sinh_bai_viet(tk_auto, tieu_de_seo_auto, short_slug_auto, link_ins_auto, out
                                         nguon_doc.append({'uri': uri, 'title': title})
                     if nguon_doc:
                         links_str = ""
+                        try:
+                            from urllib.parse import urlparse as _urlparse
+                        except Exception:
+                            _urlparse = None
                         for i, item in enumerate(nguon_doc):
                             ten_hien_thi = item['title'] if item['title'] else f"Link nguồn {i+1}"
-                            links_str += f"\n👉 [{ten_hien_thi}]({item['uri']})"
-                            
-                        cap_nhat_trang_thai_func(f"🌐 **[NGUỒN THAM KHẢO] AI đã dựa vào các bài này để viết Nội Dung:**{links_str}")
+                            if _urlparse:
+                                site = _urlparse(item['uri']).netloc.replace('www.', '')
+                            else:
+                                site = item['uri'][:40]
+                            links_str += f"\n👉 {ten_hien_thi} ({site})"
+
+                        cap_nhat_trang_thai_func(f"🌐 [NGUỒN THAM KHẢO] AI đã dựa vào các bài này để viết Nội Dung:{links_str}")
                 except Exception as e:
                     pass
                 # ==========================================================
