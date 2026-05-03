@@ -1314,17 +1314,16 @@ def cao_web_bat_dau(urls: list, thu_muc: str = "./Nguon_Tai_Lieu_Tho",
                     if "Executable doesn't exist" not in msg and "Please run the following command" not in msg:
                         raise
                     _push_log("log_cao_web", "⚙️ Playwright thiếu Chromium, đang tự cài browser...")
-                    cmd = [sys.executable, "-m", "playwright", "install", "chromium"]
+                    # Phải dùng Python thật (không phải AutoSEO.exe) để cài playwright
+                    import shutil as _sh
+                    _real_python = _sh.which("python") or _sh.which("python3") or sys.executable
                     try:
-                        subprocess.run(cmd, cwd=PROJECT_DIR, check=True, timeout=600)
-                    except Exception:
-                        py = subprocess.run(
-                            ["where", "python"] if os.name == "nt" else ["which", "python"],
-                            capture_output=True, text=True, shell=False
-                        )
-                        python_exe = (py.stdout.strip().splitlines() or ["python"])[0]
-                        subprocess.run([python_exe, "-m", "playwright", "install", "chromium"],
-                                       cwd=PROJECT_DIR, check=True, timeout=600)
+                        subprocess.run([_real_python, "-m", "playwright", "install", "chromium"],
+                                       check=True, timeout=600)
+                    except Exception as _install_err:
+                        _push_log("log_cao_web", f"❌ Không thể tự cài Chromium: {_install_err}")
+                        _push_log("log_cao_web", "💡 Hãy mở CMD và chạy: python -m playwright install chromium")
+                        raise
                     _push_log("log_cao_web", "✅ Đã cài Chromium cho Playwright, đang chạy lại...")
                     return pw.chromium.launch(headless=True,
                         args=["--disable-web-security","--no-sandbox"])
@@ -1560,13 +1559,25 @@ def close_win(): sys.exit(0)
 def main():
     print("🚀 Cỗ Máy SEO Auto 100% — Desktop App đang khởi động...")
     opts = dict(size=(1280, 800), position=(80, 40), block=True)
-    try:
-        eel.start("index.html", mode="chrome", **opts)
-    except EnvironmentError:
+
+    # Thử port 8000, nếu bị chiếm thì thử tiếp 8001 → 8005
+    started = False
+    for port in range(8000, 8006):
         try:
-            eel.start("index.html", mode="edge", **opts)
-        except EnvironmentError:
-            eel.start("index.html", mode="default", **opts)
+            try:
+                eel.start("index.html", mode="chrome", port=port, **opts)
+            except EnvironmentError:
+                try:
+                    eel.start("index.html", mode="edge", port=port, **opts)
+                except EnvironmentError:
+                    eel.start("index.html", mode="default", port=port, **opts)
+            started = True
+            break
+        except OSError as e:
+            if "10048" in str(e) or "Address already in use" in str(e):
+                print(f"⚠️ Cổng {port} đã bị chiếm — thử cổng {port+1}...")
+                continue
+            raise
 
 if __name__ == "__main__":
     main()
