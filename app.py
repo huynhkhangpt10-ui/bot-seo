@@ -1206,14 +1206,40 @@ with tab5:
                 import chromadb as _chroma
                 cli = _chroma.PersistentClient(path=_KHO_PATH)
                 col_kho = cli.get_collection("tai_lieu_seo")
-                items = col_kho.get(limit=5, include=["documents", "metadatas"])
-                st.markdown(f"**Tổng: {col_kho.count()} chunks**")
-                for i, (doc, meta) in enumerate(zip(
-                    items.get("documents", []), items.get("metadatas", [])
-                )):
-                    src = _os.path.basename(meta.get("source", ""))
-                    with st.expander(f"[{i+1}] {src}"):
-                        st.text(doc[:500])
+                tong = col_kho.count()
+                if tong == 0:
+                    st.warning("🪣 Kho đang rỗng — chưa có dữ liệu nào được nhai vào.")
+                else:
+                    # Lấy metadata tất cả để thống kê file
+                    all_meta = col_kho.get(limit=5000, include=["metadatas"])
+                    nguon_set = set()
+                    for _m in (all_meta.get("metadatas") or []):
+                        _src = _m.get("source", "")
+                        if _src:
+                            nguon_set.add(_os.path.basename(_src))
+
+                    st.success(f"✅ Kho có **{tong:,} chunks** từ **{len(nguon_set)} file**")
+
+                    # Danh sách file
+                    with st.expander(f"📄 {len(nguon_set)} file đã nạp", expanded=False):
+                        for _fn in sorted(nguon_set):
+                            st.markdown(f"- `{_fn}`")
+
+                    # Mẫu nội dung
+                    items = col_kho.get(limit=5, include=["documents", "metadatas"])
+                    st.markdown("**📝 Mẫu nội dung (5 đoạn đầu):**")
+                    for i, (doc, meta) in enumerate(zip(
+                        items.get("documents", []), items.get("metadatas", [])
+                    )):
+                        src = _os.path.basename(meta.get("source", ""))
+                        preview = doc[:300].replace("\n", " ").strip()
+                        st.markdown(
+                            f"<div style='background:#1e2530;border-left:3px solid #4a90d9;"
+                            f"padding:8px 12px;border-radius:4px;margin:4px 0;"
+                            f"font-size:12px;color:#cdd6e3'>"
+                            f"<span style='color:#6b9bbd;font-size:11px'>📄 {src}</span><br>{preview}...</div>",
+                            unsafe_allow_html=True
+                        )
             except Exception as _e:
                 st.warning(f"Kho rỗng hoặc lỗi: {_e}")
 
