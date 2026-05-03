@@ -7,13 +7,30 @@ import eel, os, sys, json, re, random, threading, base64, time, subprocess
 from datetime import datetime
 
 # ── Đường dẫn ─────────────────────────────────────────────────────────────────
+def _find_git_root(start_path: str, max_levels: int = 6) -> str | None:
+    """Tìm thư mục gốc có .git bằng cách đi lên từ start_path."""
+    path = os.path.abspath(start_path)
+    for _ in range(max_levels):
+        if os.path.isdir(os.path.join(path, ".git")):
+            return path
+        parent = os.path.dirname(path)
+        if parent == path:
+            break
+        path = parent
+    return None
+
 if getattr(sys, "frozen", False):
     BUNDLE_DIR  = sys._MEIPASS
-    PROJECT_DIR = BUNDLE_DIR
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(BUNDLE_DIR, "vertex-key.json")
+    # Tìm thư mục git thực từ vị trí file .exe (để git pull hoạt động)
+    _exe_dir    = os.path.dirname(sys.executable)
+    GIT_ROOT    = _find_git_root(_exe_dir)
+    # Nếu tìm thấy git root → dùng làm PROJECT_DIR để code Python cập nhật ngay sau git pull
+    PROJECT_DIR = GIT_ROOT if GIT_ROOT else BUNDLE_DIR
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(PROJECT_DIR, "vertex-key.json")
 else:
     BUNDLE_DIR  = os.path.dirname(os.path.abspath(__file__))
     PROJECT_DIR = os.path.dirname(BUNDLE_DIR)
+    GIT_ROOT    = _find_git_root(PROJECT_DIR)
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(PROJECT_DIR, "vertex-key.json")
 
 WEB_DIR     = os.path.join(BUNDLE_DIR, "web")
@@ -1209,58 +1226,77 @@ def _git(cmd: list, cwd: str) -> tuple[bool, str]:
 def kiem_tra_cap_nhat() -> dict:
     """
     Kiểm tra xem có commit mới trên remote chưa.
-    Trả về: { co_cap_nhat, local_hash, remote_hash, message, danh_sach_thay_doi }
+    Hoạt động cả khi chạy .py lẫn .exe (tìm git root từ vị trí exe).
     """
-    if getattr(sys, "frozen", False):
+    repo = GIT_ROOT
+    if not repo:
         return {"co_cap_nhat": False,
-                "message": "App đang chạy dạng .exe — không hỗ trợ tự cập nhật.\nHãy liên hệ developer để nhận phiên bản mới."}
+                "message": "Không tìm thấy thư mục Git.\nĐảm bảo app được cài trong thư mục có .git."}
 
-    ok, _ = _git(["fetch", "origin"], PROJECT_DIR)
+    ok, err = _git(["fetch", "origin"], repo)
     if not ok:
-        # Thử không có remote (project local)
-        return {"co_cap_nhat": False, "message": "Không tìm thấy remote Git. Đảm bảo project có kết nối Git."}
+        return {"co_cap_nhat": False,
+                "message": f"Không kết nối được Git remote:\n{err}"}
 
-    _, local  = _git(["rev-parse", "HEAD"], PROJECT_DIR)
-    _, remote = _git(["rev-parse", "origin/HEAD"], PROJECT_DIR)
+    _, local = _git(["rev-parse", "HEAD"], repo)
+
+    # Thử lần lượt origin/HEAD → origin/master → origin/main
+    remote = ""
+    for ref in ["origin/HEAD", "origin/master", "origin/main"]:
+        ok2, remote = _git(["rev-parse", ref], repo)
+        if ok2 and remote:
+            break
 
     if not local or not remote:
-        _, remote = _git(["rev-parse", "origin/main"], PROJECT_DIR)
-    if not local or not remote:
-        _, remote = _git(["rev-parse", "origin/master"], PROJECT_DIR)
+        return {"co_cap_nhat": False, "message": "Không đọc được hash commit."}
 
-    if local == remote:
+    if local.strip() == remote.strip():
         return {"co_cap_nhat": False,
                 "local_hash": local[:7],
                 "remote_hash": remote[:7],
-                "message": f"✅ Bạn đang dùng phiên bản mới nhất! (#{local[:7]})"}
+                "message": f"✅ Phiên bản mới nhất! (#{local[:7]})"}
 
-    # Có thay đổi — lấy danh sách file thay đổi
-    _, diff_log = _git(["log", f"HEAD..origin/HEAD", "--oneline"], PROJECT_DIR)
-    if not diff_log:
-        _, diff_log = _git(["log", f"HEAD..origin/main", "--oneline"], PROJECT_DIR)
+    # Có bản mới — lấy danh sách commit
+    diff_log = ""
+    for ref in ["origin/HEAD", "origin/master", "origin/main"]:
+        _, diff_log = _git(["log", f"HEAD..{ref}", "--oneline"], repo)
+        if diff_log:
+            break
 
     return {
         "co_cap_nhat": True,
         "local_hash":  local[:7],
         "remote_hash": remote[:7],
-        "message": f"🔔 Có bản cập nhật mới! (#{local[:7]} → #{remote[:7]})",
+        "message": f"🔔 Có bản cập nhật! (#{local[:7]} → #{remote[:7]})",
         "danh_sach": diff_log or "(không có thông tin chi tiết)"
     }
 
 @eel.expose
 def thuc_hien_cap_nhat() -> dict:
-    """Chạy git pull và restart app."""
-    if getattr(sys, "frozen", False):
-        return {"ok": False, "message": "Không hỗ trợ tự cập nhật trên .exe."}
+    """Chạy git pull rồi restart app (hoạt động cả .py lẫn .exe)."""
+    repo = GIT_ROOT
+    if not repo:
+        return {"ok": False, "message": "Không tìm thấy thư mục Git để cập nhật."}
 
-    ok, out = _git(["pull", "--rebase", "origin"], PROJECT_DIR)
+    # Thử pull với các nhánh phổ biến
+    ok, out = _git(["pull", "--rebase", "origin"], repo)
+    if not ok:
+        # Thử không --rebase
+        ok, out = _git(["pull", "origin"], repo)
     if not ok:
         return {"ok": False, "message": f"❌ Git pull thất bại:\n{out}"}
 
-    # Restart app sau 1.5 giây
     def _restart():
-        time.sleep(1.5)
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+        time.sleep(2)
+        try:
+            if getattr(sys, "frozen", False):
+                # Chạy lại file .exe
+                subprocess.Popen([sys.executable] + sys.argv)
+            else:
+                os.execv(sys.executable, [sys.executable] + sys.argv)
+        except Exception:
+            pass
+        sys.exit(0)
 
     threading.Thread(target=_restart, daemon=True).start()
     return {"ok": True, "message": f"✅ Cập nhật thành công!\n{out}\n\n⏳ App đang khởi động lại..."}
