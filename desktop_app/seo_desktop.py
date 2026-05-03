@@ -44,12 +44,21 @@ else:
 STOP_FILE   = os.path.join(PROJECT_DIR, "stop_auto.txt")   # tuyệt đối, tránh lỗi CWD
 
 # Khi chạy .exe: thêm site-packages THẬT của Python để tránh lỗi
-# "No module named 'chromadb.api.rust'" và các extension bị thiếu trong bundle
+# "No module named 'chromadb.api.rust'" và các Rust/C extension bị thiếu trong bundle
 if getattr(sys, "frozen", False):
-    import site as _site
-    for _sp in _site.getsitepackages():
-        if _sp not in sys.path:
-            sys.path.append(_sp)
+    import shutil as _shutil
+    _python = _shutil.which("python") or _shutil.which("python3")
+    if _python:
+        _pydir = os.path.dirname(os.path.abspath(_python))
+        # Thử cả python_dir/Lib/site-packages và parent/Lib/site-packages
+        _candidates = [
+            os.path.join(_pydir, "Lib", "site-packages"),
+            os.path.join(os.path.dirname(_pydir), "Lib", "site-packages"),
+        ]
+        for _sp in _candidates:
+            if os.path.isdir(_sp) and _sp not in sys.path:
+                sys.path.insert(1, _sp)
+                break
 
 # Custom modules (my_modules.py, module_kho_du_lieu.py...) ưu tiên từ git source
 sys.path.insert(0, PROJECT_DIR)
