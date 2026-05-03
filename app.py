@@ -985,9 +985,6 @@ with tab4:
 
     st.subheader("📊 Nguyên Liệu Sẵn Sàng (Từ Khóa Đã 'Hoàn thành')")
 
-    import pandas as _pd
-    df_ve_tinh = _pd.DataFrame()   # mặc định rỗng, tránh NameError bên dưới
-
     try:
         if "Trạng thái" in df.columns:
             df_ve_tinh = df[df["Trạng thái"] == "Hoàn thành"].copy()
@@ -1131,158 +1128,105 @@ with tab4:
 
 # ----------------- TAB 5: KHO DỮ LIỆU (RAG) -----------------
 with tab5:
-    st.header("📚 Kho Dữ Liệu (RAG)")
-    st.caption("Nạp PDF / TXT vào kho ChromaDB để AI tham khảo khi viết bài. Hệ thống tự động chống trùng lặp.")
+    st.subheader("📚 Kho Dữ Liệu RAG")
+    st.caption("Upload PDF/TXT, nhai vào kho vector để AI dùng khi viết bài.")
 
-    import nap_tai_lieu
-    import chromadb
+    import os as _os
 
-    # ── Thống kê kho ──────────────────────────────────────────────────────
-    KHO_PATH = "./Kho_Du_Lieu_Vector"
-    NGUON_PATH = "./Nguon_Tai_Lieu_Tho"
+    _KHO_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "Kho_Du_Lieu_Vector")
+    _TAI_LIEU_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "Nguon_Tai_Lieu_Tho")
 
-    col_stat1, col_stat2, col_stat3 = st.columns(3)
-    try:
-        _cli_rag = chromadb.PersistentClient(path=KHO_PATH)
-        _col_rag = _cli_rag.get_or_create_collection("tai_lieu_seo")
-        _so_doan = _col_rag.count()
-        _data_meta = _col_rag.get(include=["metadatas"], limit=99999)
-        _nguon_set = set(
-            m["nguon_goc"]
-            for m in (_data_meta.get("metadatas") or [])
-            if m and m.get("nguon_goc")
-        )
-        col_stat1.metric("📄 Đoạn kiến thức", f"{_so_doan:,}")
-        col_stat2.metric("📁 Tài liệu gốc", len(_nguon_set))
-        col_stat3.metric("🗄️ Kho", "ChromaDB ✅")
-    except Exception as _e_stat:
-        col_stat1.metric("📄 Đoạn kiến thức", "—")
-        col_stat2.metric("📁 Tài liệu gốc", "—")
-        col_stat3.warning(f"Kho chưa khởi tạo")
+    # ── Thống kê kho ────────────────────────────────────────────
+    def _lay_thong_ke_kho():
+        try:
+            import chromadb as _chroma
+            cli = _chroma.PersistentClient(path=_KHO_PATH)
+            col = cli.get_collection("tai_lieu_seo")
+            so_doan = col.count()
+            items = col.get(limit=1000, include=["metadatas"])
+            nguon = set()
+            for m in (items.get("metadatas") or []):
+                src = m.get("source", "")
+                if src:
+                    nguon.add(_os.path.basename(src))
+            return so_doan, len(nguon), sorted(nguon)
+        except Exception as _e:
+            return 0, 0, []
+
+    so_doan, so_file, ds_file = _lay_thong_ke_kho()
+
+    col_r1, col_r2, col_r3 = st.columns(3)
+    col_r1.metric("📦 Knowledge chunks", so_doan)
+    col_r2.metric("📄 Source files", so_file)
+    col_r3.metric("📁 Thư mục nguồn", "Nguon_Tai_Lieu_Tho")
+
+    if ds_file:
+        with st.expander(f"📋 Danh sách {so_file} file đã nạp"):
+            for _f in ds_file:
+                st.text(f"• {_f}")
 
     st.divider()
 
-    # ── Upload file ───────────────────────────────────────────────────────
-    st.subheader("📥 Nạp File Vào Kho")
-
+    # ── Upload file ──────────────────────────────────────────────
+    st.markdown("#### 📂 Upload PDF / TXT vào kho")
     uploaded_files = st.file_uploader(
-        "Chọn file PDF hoặc TXT (nhiều file cùng lúc)",
+        "Kéo thả hoặc chọn file",
         type=["pdf", "txt"],
         accept_multiple_files=True,
-        help="File sẽ được lưu vào Nguon_Tai_Lieu_Tho/ rồi nhai vào ChromaDB tự động",
+        key="rag_upload"
     )
 
-    col_nhai1, col_nhai2 = st.columns([3, 1])
-    with col_nhai1:
-        if uploaded_files:
-            st.info(f"✅ Đã chọn **{len(uploaded_files)} file**: " +
-                    ", ".join(f.name for f in uploaded_files))
-    with col_nhai2:
-        btn_nhai = st.button(
-            "🧠 Nhai & Bơm Vào Kho",
-            type="primary",
-            disabled=(not uploaded_files),
-            use_container_width=True,
-        )
+    if uploaded_files:
+        _os.makedirs(_TAI_LIEU_PATH, exist_ok=True)
+        for _uf in uploaded_files:
+            _save_path = _os.path.join(_TAI_LIEU_PATH, _uf.name)
+            with open(_save_path, "wb") as _fp:
+                _fp.write(_uf.getbuffer())
+        st.success(f"✅ Đã lưu {len(uploaded_files)} file vào `{_TAI_LIEU_PATH}`")
 
-    if btn_nhai and uploaded_files:
-        os.makedirs(NGUON_PATH, exist_ok=True)
-        with st.spinner("Đang lưu file và nhai dữ liệu..."):
-            # Lưu file vào thư mục nguồn
-            for uf in uploaded_files:
-                save_path = os.path.join(NGUON_PATH, uf.name)
-                with open(save_path, "wb") as _fp:
-                    _fp.write(uf.getbuffer())
-            st.success(f"💾 Đã lưu {len(uploaded_files)} file vào `{NGUON_PATH}/`")
+    # ── Nhai dữ liệu ───────────────────────────────────────────
+    st.markdown("#### 🧠 Nhai Toàn Bộ Thư Mục Nguồn")
+    st.caption(f"Nhai tất cả PDF/TXT trong `{_TAI_LIEU_PATH}`")
 
-            # Nhai dữ liệu
-            log_placeholder = st.empty()
-            log_lines = []
-
-            _orig_ghi_log = nap_tai_lieu.ghi_log
-            def _ghi_log_ui(noi_dung):
-                _orig_ghi_log(noi_dung)
-                log_lines.append(noi_dung)
-                log_placeholder.code("\n".join(log_lines[-30:]), language="")
-
-            nap_tai_lieu.ghi_log = _ghi_log_ui
-            try:
-                nap_tai_lieu.nap_vao_kho()
-            finally:
-                nap_tai_lieu.ghi_log = _orig_ghi_log
-
-        st.success("🎉 Nhai xong! Kho RAG đã được cập nhật.")
-        st.rerun()
-
-    st.divider()
-
-    # ── Nhai thư mục sẵn có ───────────────────────────────────────────────
-    st.subheader("📁 Nhai Tất Cả File Trong Thư Mục")
-    st.caption(f"Nhai toàn bộ file PDF/TXT đang có trong `{NGUON_PATH}/`")
-
-    so_file_cho = 0
-    if os.path.exists(NGUON_PATH):
-        so_file_cho = len([
-            f for f in os.listdir(NGUON_PATH)
-            if f.lower().endswith((".pdf", ".txt"))
-        ])
-
-    col_f1, col_f2 = st.columns([3, 1])
-    with col_f1:
-        if so_file_cho > 0:
-            st.info(f"📂 Đang có **{so_file_cho} file** chưa nhai trong thư mục nguồn.")
-        else:
-            st.info("📭 Thư mục nguồn đang trống.")
-    with col_f2:
-        if st.button("🚀 Nhai Thư Mục", disabled=(so_file_cho == 0), use_container_width=True):
-            with st.spinner("Đang nhai..."):
-                log2_lines = []
-                log2_ph = st.empty()
-                _orig2 = nap_tai_lieu.ghi_log
-                def _log2_ui(msg):
-                    _orig2(msg)
-                    log2_lines.append(msg)
-                    log2_ph.code("\n".join(log2_lines[-30:]), language="")
-                nap_tai_lieu.ghi_log = _log2_ui
+    col_b1, col_b2, col_b3 = st.columns(3)
+    with col_b1:
+        if st.button("🧠 Nhai Thư Mục", type="primary", key="rag_nap"):
+            with st.spinner("Đang nhai tài liệu vào kho..."):
                 try:
+                    import nap_tai_lieu
                     nap_tai_lieu.nap_vao_kho()
-                finally:
-                    nap_tai_lieu.ghi_log = _orig2
-            st.success("🎉 Hoàn tất!")
-            st.rerun()
+                    st.success("🎉 Nhai xong! Kho đã được cập nhật.")
+                    st.rerun()
+                except Exception as _e:
+                    st.error(f"❌ Lỗi: {_e}")
 
-    st.divider()
-
-    # ── Xem nội dung kho ──────────────────────────────────────────────────
-    st.subheader("🔎 Xem Trước Nội Dung Kho")
-    with st.expander("Xem 10 đoạn kiến thức đầu tiên trong kho"):
-        try:
-            _cli2 = chromadb.PersistentClient(path=KHO_PATH)
-            _col2 = _cli2.get_collection("tai_lieu_seo")
-            _peek = _col2.peek(limit=10)
-            if _peek["documents"]:
-                for i, (doc, meta) in enumerate(zip(_peek["documents"], _peek["metadatas"])):
-                    nguon = meta.get("nguon_goc", "Không rõ nguồn")
-                    st.markdown(f"**📍 Đoạn {i+1}** — Nguồn: `{nguon}`")
-                    st.text(doc[:400] + ("..." if len(doc) > 400 else ""))
-                    st.divider()
-            else:
-                st.info("Kho đang trống.")
-        except Exception as _e2:
-            st.warning(f"Không đọc được kho: {_e2}")
-
-    # ── Xoá kho ───────────────────────────────────────────────────────────
-    st.subheader("🗑️ Xoá Kho RAG")
-    with st.expander("⚠️ Vùng nguy hiểm — Xoá toàn bộ kho"):
-        st.warning("Hành động này sẽ xoá sạch toàn bộ dữ liệu trong ChromaDB, không thể hoàn tác!")
-        if st.button("🗑️ XOÁ SẠCH KHO RAG", type="secondary"):
+    with col_b2:
+        if st.button("👁️ Xem Kho", key="rag_xem"):
             try:
-                _cli3 = chromadb.PersistentClient(path=KHO_PATH)
-                _cli3.delete_collection("tai_lieu_seo")
+                import chromadb as _chroma
+                cli = _chroma.PersistentClient(path=_KHO_PATH)
+                col_kho = cli.get_collection("tai_lieu_seo")
+                items = col_kho.get(limit=5, include=["documents", "metadatas"])
+                st.markdown(f"**Tổng: {col_kho.count()} chunks**")
+                for i, (doc, meta) in enumerate(zip(
+                    items.get("documents", []), items.get("metadatas", [])
+                )):
+                    src = _os.path.basename(meta.get("source", ""))
+                    with st.expander(f"[{i+1}] {src}"):
+                        st.text(doc[:500])
+            except Exception as _e:
+                st.warning(f"Kho rỗng hoặc lỗi: {_e}")
+
+    with col_b3:
+        if st.button("🗑️ Xoá Kho RAG", key="rag_xoa", type="secondary"):
+            try:
+                import chromadb as _chroma
+                cli = _chroma.PersistentClient(path=_KHO_PATH)
+                cli.delete_collection("tai_lieu_seo")
                 st.success("✅ Đã xoá sạch kho RAG!")
                 st.rerun()
-            except Exception as _e3:
-                st.error(f"❌ Lỗi: {_e3}")
+            except Exception as _e:
+                st.error(f"❌ {_e}")
 
 # ----------------- TAB 6: CÀO WEB SANG PDF -----------------
 with tab6:
@@ -1362,34 +1306,11 @@ with tab6:
                         except Exception:
                             return True  # Nếu AI lỗi → giữ lại, không bỏ
 
-                    _LAUNCH_ARGS = [
-                        "--disable-web-security", "--no-sandbox",
-                        "--disable-gpu", "--disable-dev-shm-usage",
-                        "--ignore-certificate-errors", "--ignore-ssl-errors",
-                    ]
-
-                    def _launch_browser(pw):
-                        try:
-                            return pw.chromium.launch(headless=True, args=_LAUNCH_ARGS)
-                        except Exception as _e:
-                            if "Executable doesn't exist" not in str(_e) and "Please run" not in str(_e):
-                                raise
-                        for _exe in [
-                            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                            r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-                            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-                            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-                        ]:
-                            if os.path.isfile(_exe):
-                                try:
-                                    return pw.chromium.launch(executable_path=_exe,
-                                                              headless=True, args=_LAUNCH_ARGS)
-                                except Exception:
-                                    continue
-                        raise RuntimeError("Không tìm thấy browser. Hãy chạy: python -m playwright install chromium")
-
                     with sync_playwright() as pw:
-                        browser = _launch_browser(pw)
+                        browser = pw.chromium.launch(
+                            headless=True,
+                            args=["--disable-web-security", "--no-sandbox"],
+                        )
                         ctx = browser.new_context(
                             viewport={"width": 1440, "height": 900},
                             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
