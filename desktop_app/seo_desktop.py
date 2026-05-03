@@ -135,6 +135,31 @@ from module_content  import sinh_dan_y, sinh_bai_viet
 import nap_tai_lieu
 import chromadb, requests
 
+_ORIGINAL_TAO_PROMPT_ANH = mm.tao_prompt_anh_software_interface
+
+def _tao_prompt_anh_co_rag(tk_chinh, noi_dung=""):
+    """Desktop-only: bổ sung ngữ cảnh RAG vào prompt ảnh, không sửa module_images.py."""
+    nd = str(noi_dung or "")
+    try:
+        import module_kho_du_lieu
+
+        truy_van = f"{tk_chinh} {nd[:500]}".strip()
+        tai_lieu_rag = module_kho_du_lieu.tim_kiem_tai_lieu(truy_van)
+        if tai_lieu_rag:
+            nd = (
+                f"{nd}\n\n"
+                "[RAG CONTEXT FOR IMAGE PROMPT - summarize visually, do not draw text]:\n"
+                f"{str(tai_lieu_rag)[:1800]}"
+            )
+    except Exception as e:
+        print(f"[IMAGE-RAG] Skip RAG for image prompt: {e}", flush=True)
+
+    return _ORIGINAL_TAO_PROMPT_ANH(tk_chinh, nd)
+
+# my_modules.py đã import trực tiếp hàm từ module_images; thay global trong my_modules
+# để chỉ desktop app dùng RAG khi tạo prompt ảnh.
+mm.tao_prompt_anh_software_interface = _tao_prompt_anh_co_rag
+
 eel.init(WEB_DIR)
 
 # ════════════════════════════════════════════════════════════════════════════════
