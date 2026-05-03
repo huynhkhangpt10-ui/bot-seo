@@ -1,0 +1,47 @@
+# ── Build / PyInstaller ───────────────────────────────────────
+desktop_app/build/
+desktop_app/dist/
+desktop_app/__pycache__/
+desktop_app/*.spec.bak
+
+# ── Python cache ──────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ── Môi trường ────────────────────────────────────────────────
+.env
+venv/
+.venv/
+env/
+
+# ── Credentials / Secrets ─────────────────────────────────────
+vertex-key.json
+token.pickle
+token.json
+stack_token.pickle
+fb_pages.json
+zalo_token.json
+bot_settings.json
+
+# ── Dữ liệu runtime ───────────────────────────────────────────
+Kho_Du_Lieu_Vector/
+Nguon_Tai_Lieu_Tho/
+PDF_Output/
+*.log
+bot_log.txt
+nhat_ky_nap_kho.txt
+stop_*.txt
+
+# ── File test / tạm ───────────────────────────────────────────
+test_*.py
+test_*.log
+test_*.html
+test_*.txt
+untitled file
+
+# ── IDE ───────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
