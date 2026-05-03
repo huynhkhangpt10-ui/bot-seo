@@ -527,11 +527,18 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
                     ws.update_cell(row_sheet, col_tt, "⏳ Đang viết bài...")
                 except Exception: pass
 
+                class _StopNow(Exception):
+                    pass
+
                 def cb(msg, _tk=tk):
+                    # Kiểm tra lệnh dừng ngay trong callback — được gọi hàng trăm lần
+                    if os.path.exists(STOP_FILE):
+                        raise _StopNow("Dừng khẩn cấp")
                     _push_log("log_tab2", str(msg))
 
                 # ── GỌI PIPELINE ĐẦY ĐỦ ────────────────────────────────────
-                thanh_cong, msg_tt, link_bai = quy_trinh_dang_bai_full(
+                try:
+                  thanh_cong, msg_tt, link_bai = quy_trinh_dang_bai_full(
                     tk_auto               = tk,
                     tieu_de_excel         = tk_phu,
                     danh_sach_api_keys    = danh_sach_api_keys,
@@ -550,7 +557,16 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
                     sh                    = sh,
                     link_bai_goc          = link_goc,
                     link_tai_thu_cong     = link_tai,
-                )
+                  )
+                except _StopNow:
+                    if os.path.exists(STOP_FILE):
+                        os.remove(STOP_FILE)
+                    try: ws.update_cell(row_sheet, col_tt, "⏸ Đã dừng")
+                    except Exception: pass
+                    _push_log("log_tab2", "🛑 Dừng khẩn cấp — bài đang viết bị huỷ!")
+                    break
+                except Exception as _ep:
+                    thanh_cong, msg_tt, link_bai = False, str(_ep), ""
 
                 if thanh_cong:
                     try: ws.update_cell(row_sheet, col_tt, "Hoàn thành")
