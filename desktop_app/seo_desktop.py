@@ -1082,18 +1082,38 @@ def lay_thong_ke_kho() -> dict:
         return {"so_doan": 0, "so_file": 0}
 
 @eel.expose
-def xem_kho_rag(limit: int = 10) -> list:
+def xem_kho_rag(limit: int = 10) -> dict:
+    """Trả về thống kê + mẫu nội dung kho RAG."""
     try:
-        kp = os.path.join(PROJECT_DIR, "Kho_Du_Lieu_Vector")
+        import module_kho_du_lieu as _mkdl
+        kp = _mkdl.THU_MUC_KHO   # dùng đường dẫn tuyệt đối từ module
         cli = chromadb.PersistentClient(path=kp)
-        col = cli.get_collection("tai_lieu_seo")
-        data = col.peek(limit=limit)
-        results = []
-        for doc, meta in zip(data["documents"], data["metadatas"]):
-            results.append({"nguon": meta.get("nguon_goc","?"), "doan": doc[:400]})
-        return results
-    except Exception:
-        return []
+        try:
+            col = cli.get_collection("tai_lieu_seo")
+        except Exception:
+            return {"so_doan": 0, "so_file": 0, "mau": [], "loi": ""}
+
+        so_doan = col.count()
+        # Lấy danh sách nguồn gốc
+        meta_all = col.get(include=["metadatas"], limit=99999)
+        nguon_set = set(m.get("nguon_goc","?") for m in (meta_all.get("metadatas") or []) if m)
+
+        # Lấy mẫu
+        mau = []
+        if so_doan > 0:
+            peek = col.peek(limit=limit)
+            for doc, meta in zip(peek.get("documents",[]), peek.get("metadatas",[])):
+                mau.append({"nguon": meta.get("nguon_goc","?"), "doan": doc[:300]})
+
+        return {
+            "so_doan": so_doan,
+            "so_file": len(nguon_set),
+            "danh_sach_file": sorted(nguon_set),
+            "mau": mau,
+            "loi": ""
+        }
+    except Exception as e:
+        return {"so_doan": 0, "so_file": 0, "mau": [], "loi": str(e)}
 
 @eel.expose
 def xoa_kho_rag() -> dict:

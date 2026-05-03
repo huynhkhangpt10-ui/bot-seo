@@ -1241,12 +1241,30 @@ async function rag_thu_muc() {
 }
 
 async function rag_xem() {
-  const data = await eel.xem_kho_rag(10)();
   const el = document.getElementById('rag-peek');
   el.classList.remove('hidden');
-  el.innerHTML = data.length
-    ? data.map((d,i) => `[${i+1}] 📄 ${d.nguon}\n${d.doan}\n${'─'.repeat(40)}`).join('\n\n')
-    : 'Kho đang trống.';
+  el.textContent = '⏳ Đang đọc kho...';
+
+  const r = await eel.xem_kho_rag(8)();
+
+  if (r.loi) { el.textContent = '❌ Lỗi: ' + r.loi; return; }
+  if (!r.so_doan) { el.textContent = '📭 Kho RAG đang trống — hãy nhai tài liệu trước.'; return; }
+
+  let txt = `📊 THỐNG KÊ KHO RAG\n`;
+  txt += `  • Tổng chunks : ${r.so_doan}\n`;
+  txt += `  • Tổng file   : ${r.so_file}\n\n`;
+  txt += `📁 DANH SÁCH FILE ĐÃ NẠP:\n`;
+  (r.danh_sach_file || []).forEach((f,i) => { txt += `  ${i+1}. ${f}\n`; });
+  if (r.mau && r.mau.length) {
+    txt += `\n📄 MẪU NỘI DUNG (${r.mau.length} đoạn đầu):\n${'─'.repeat(50)}\n`;
+    r.mau.forEach((m,i) => {
+      txt += `[${i+1}] Nguồn: ${m.nguon}\n${m.doan}\n${'─'.repeat(50)}\n`;
+    });
+  }
+  el.textContent = txt;
+  // Cập nhật lại số liệu thống kê thẻ trên
+  document.getElementById('rag-count').textContent = r.so_doan;
+  document.getElementById('rag-files').textContent = r.so_file;
 }
 
 async function rag_xoa() {
