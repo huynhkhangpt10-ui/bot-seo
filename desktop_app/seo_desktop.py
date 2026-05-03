@@ -364,79 +364,182 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
                       cho_phep_web: bool = True,
                       cho_phep_zalo: bool = False,
                       cho_phep_fb: bool = False) -> dict:
-    """Khởi động cỗ máy tự động trong thread riêng."""
+    """Khởi động cỗ máy tự động — dùng quy_trinh_dang_bai_full() y hệt Streamlit."""
+
     def _worker():
         try:
-            _push_log("log_tab2", "🚀 Cỗ máy khởi động...")
-            r = ket_noi_sheets(gs_url, tab_name)
-            if not r["ok"]:
-                _push_log("log_tab2", f"❌ Không kết nối được Sheets: {r['error']}")
+            import gspread, pandas as pd
+            import seo_doctor
+            from my_modules import (quy_trinh_dang_bai_full,
+                                    reset_dem_so_bai, rut_gon_tu_khoa)
+
+            _push_log("log_tab2", "🚀 Cỗ máy khởi động — kết nối Sheets...")
+
+            # ── Kết nối Sheets ──────────────────────────────────────────────
+            gc = gspread.service_account(filename=GOOGLE_KEY_PATH)
+            sh = gc.open_by_url(gs_url)
+            ws = sh.worksheet(tab_name)
+            df = pd.DataFrame(ws.get_all_records())
+
+            if df.empty or "Trạng thái" not in df.columns:
+                _push_log("log_tab2", "❌ Sheet trống hoặc thiếu cột 'Trạng thái'")
                 return
 
-            import pandas as pd, gspread
-            sc = _sheets_cache["current"]
-            df, ws, sp = sc["df"], sc["worksheet"], sc["spreadsheet"]
+            # ── Đọc API_KEY tab ─────────────────────────────────────────────
+            try:
+                ws_api = sh.worksheet("API_KEY")
+                danh_sach_api_keys = [
+                    k.strip() for k in ws_api.col_values(1)[1:] if k.strip()
+                ][::-1]
+                _push_log("log_tab2", f"🔑 Nạp {len(danh_sach_api_keys)} API key")
+            except Exception:
+                danh_sach_api_keys = []
+                _push_log("log_tab2", "⚠️ Không tìm thấy tab API_KEY — dùng key mặc định")
 
-            if "Trạng thái" not in df.columns:
-                _push_log("log_tab2", "❌ Sheet thiếu cột 'Trạng thái'")
-                return
+            # ── Đọc KhoLink tab ─────────────────────────────────────────────
+            kho_link_list = []
+            ws_kho = None
+            try:
+                ws_kho = sh.worksheet("KhoLink")
+                kho_data = ws_kho.get_all_values()
+                for i, r in enumerate(kho_data[1:] if len(kho_data) > 1 else []):
+                    if len(r) >= 2 and str(r[1]).startswith("http"):
+                        kho_link_list.append({"row": i+2, "anchor": r[0], "url": r[1]})
+                _push_log("log_tab2", f"🔗 Nạp {len(kho_link_list)} link nội bộ từ KhoLink")
+            except Exception:
+                _push_log("log_tab2", "⚠️ Không tìm thấy tab KhoLink")
 
-            hang_doi = df[(df["Trạng thái"].astype(str) == "") &
-                           (df["Từ khóa"].astype(str) != "")].index.tolist()
-            _push_log("log_tab2", f"📋 Tìm thấy {len(hang_doi)} bài cần viết.")
+            # ── Đọc cấu hình sidebar (ui_settings.json) ─────────────────────
+            cfg = tai_cau_hinh()
+            trang_thai_wp = "publish"
+            st_cfg = cfg.get("trang_thai", "publish")
+            if "Lên lịch" in st_cfg:   trang_thai_wp = "scheduled"
+            elif "Đăng nóng" in st_cfg: trang_thai_wp = "publish_now"
+            else:                        trang_thai_wp = "draft"
 
-            for row_idx in hang_doi:
+            # Lấy category/tag IDs
+            danh_sach_dm_id = []
+            danh_sach_the_id = []
+            try:
+                cats = lay_wp_categories()
+                dm_name = cfg.get("danh_muc", "")
+                danh_sach_dm_id = [c["id"] for c in cats if str(c.get("id")) == str(dm_name) or c.get("name") == dm_name]
+            except Exception: pass
+            try:
+                tags = lay_wp_tags()
+                tag_val = cfg.get("tag", "")
+                danh_sach_the_id = [t["id"] for t in tags if str(t.get("id")) == str(tag_val)]
+            except Exception: pass
+
+            # Author block / shortcode từ ui_settings
+            author_block_code  = cfg.get("author_block_code", "")
+            flatsome_shortcode = cfg.get("flatsome_shortcode", "")
+
+            # ── Hàng đợi ────────────────────────────────────────────────────
+            hang_doi = df[
+                (df["Trạng thái"].astype(str).str.strip() == "") &
+                (df["Từ khóa"].astype(str).str.strip() != "")
+            ]
+            _push_log("log_tab2", f"📋 Tìm thấy {len(hang_doi)} bài cần viết")
+            reset_dem_so_bai()
+
+            cols = df.columns.tolist()
+            col_tt   = cols.index("Trạng thái") + 1
+            col_link = cols.index("Link bài viết") + 1 if "Link bài viết" in cols else None
+
+            dem = 0
+            for idx, row in hang_doi.iterrows():
                 if os.path.exists("stop_auto.txt"):
                     os.remove("stop_auto.txt")
-                    _push_log("log_tab2", "🛑 Dừng theo lệnh.")
+                    _push_log("log_tab2", "🛑 Nhận lệnh dừng khẩn cấp!")
                     break
 
-                tk = str(df.at[row_idx, "Từ khóa"]).strip()
+                row_sheet = idx + 2
+                tk = rut_gon_tu_khoa(str(row.get("Từ khóa", "")).strip())
                 if not tk:
                     continue
 
-                _push_log("log_tab2", f"⚙️ [{row_idx+2}] Đang viết: «{tk}»...")
-                ws.update_cell(row_idx + 2,
-                               df.columns.tolist().index("Trạng thái") + 1,
-                               "⏳ Đang viết bài...")
+                tk_phu    = str(row.get("Từ khóa phụ", "")).strip()
+                link_goc  = str(row.get("Link Bài Gốc", row.get("Link tham khảo", ""))).strip()
+                link_tai  = ""
+                try:
+                    vals = list(row.values)
+                    if len(vals) >= 8 and str(vals[7]).startswith("http"):
+                        link_tai = str(vals[7]).strip()
+                except Exception: pass
+                if not link_goc.startswith("http"): link_goc = ""
 
-                def cb(msg): _push_log("log_tab2", msg)
-                res = tao_bai(tk)
-                if not res["ok"]:
-                    ws.update_cell(row_idx + 2,
-                                   df.columns.tolist().index("Trạng thái") + 1,
-                                   f"❌ Lỗi: {res['error'][:50]}")
-                    continue
+                _push_log("log_tab2", f"\n⚙️ [{row_sheet}] Đang viết: «{tk}»...")
+                try:
+                    ws.update_cell(row_sheet, col_tt, "⏳ Đang viết bài...")
+                except Exception: pass
 
-                tieu_de = res["tieu_de"]
-                noi_dung = res["noi_dung"]
-                link_bai = ""
+                def cb(msg, _tk=tk):
+                    _push_log("log_tab2", str(msg))
 
-                if cho_phep_web:
-                    wp_res = dang_bai_wp(tieu_de, noi_dung, [], [], "publish")
-                    if wp_res["ok"]:
-                        link_bai = wp_res["link"]
-                        _push_log("log_tab2", f"✅ Đã đăng WP: {link_bai}")
+                # ── GỌI PIPELINE ĐẦY ĐỦ ────────────────────────────────────
+                thanh_cong, msg_tt, link_bai = quy_trinh_dang_bai_full(
+                    tk_auto               = tk,
+                    tieu_de_excel         = tk_phu,
+                    danh_sach_api_keys    = danh_sach_api_keys,
+                    kho_link_list         = kho_link_list,
+                    ws_kho                = ws_kho,
+                    author_block_code     = author_block_code,
+                    flatsome_shortcode    = flatsome_shortcode,
+                    danh_sach_dm_id_auto  = danh_sach_dm_id,
+                    danh_sach_the_id_auto = danh_sach_the_id,
+                    trang_thai_wp         = trang_thai_wp,
+                    cap_nhat_trang_thai_func = cb,
+                    cho_phep_zalo         = cho_phep_zalo,
+                    cho_phep_facebook     = cho_phep_fb,
+                    cho_phep_web          = cho_phep_web,
+                    row_index             = row_sheet,
+                    sh                    = sh,
+                    link_bai_goc          = link_goc,
+                    link_tai_thu_cong     = link_tai,
+                )
 
-                ws.update_cell(row_idx + 2,
-                               df.columns.tolist().index("Trạng thái") + 1,
-                               "Hoàn thành")
-                if "Link bài viết" in df.columns and link_bai:
-                    ws.update_cell(row_idx + 2,
-                                   df.columns.tolist().index("Link bài viết") + 1,
-                                   link_bai)
+                if thanh_cong:
+                    try: ws.update_cell(row_sheet, col_tt, "Hoàn thành")
+                    except Exception: pass
+                    if col_link and link_bai:
+                        try: ws.update_cell(row_sheet, col_link, link_bai)
+                        except Exception: pass
+                    # Append KhoLink
+                    if ws_kho and link_bai.startswith("http"):
+                        try:
+                            ws_kho.append_row([tk, link_bai, "Sống"])
+                            kho_link_list.append({"row": 999, "anchor": tk, "url": link_bai})
+                        except Exception: pass
+                    # Ép Google Index
+                    if link_bai.startswith("http"):
+                        try:
+                            ok_idx, msg_idx = seo_doctor.ep_index_url(link_bai)
+                            _push_log("log_tab2", f"{'🎉' if ok_idx else '⚠️'} Index: {msg_idx}")
+                        except Exception as e_idx:
+                            _push_log("log_tab2", f"⚠️ Ép index lỗi: {e_idx}")
+                    _push_log("log_tab2", f"✅ Xong! {link_bai}")
+                else:
+                    try: ws.update_cell(row_sheet, col_tt, f"❌ Lỗi: {msg_tt[:80]}")
+                    except Exception: pass
+                    _push_log("log_tab2", f"❌ Lỗi: {msg_tt}")
 
-                sleep_s = random.randint(180, 360)
-                _push_log("log_tab2", f"💤 Nghỉ {sleep_s}s trước bài tiếp theo...")
-                time.sleep(sleep_s)
+                dem += 1
+                if dem < len(hang_doi):
+                    sleep_s = random.randint(300, 600)
+                    _push_log("log_tab2",
+                              f"☕ Nghỉ {sleep_s//60}p{sleep_s%60}s trước bài tiếp...")
+                    time.sleep(sleep_s)
 
-            _push_log("log_tab2", "🎉 Hoàn tất toàn bộ hàng đợi!")
+            _push_log("log_tab2", f"\n🎉 Hoàn tất! Đã viết {dem}/{len(hang_doi)} bài")
             eel.tab2_done()()
+
         except Exception as e:
-            _push_log("log_tab2", f"❌ Lỗi hệ thống: {e}")
+            import traceback
+            _push_log("log_tab2", f"❌ Lỗi hệ thống: {e}\n{traceback.format_exc()[-300:]}")
 
     threading.Thread(target=_worker, daemon=True).start()
-    return {"ok": True, "msg": "Đã khởi động cỗ máy trong nền!"}
+    return {"ok": True, "msg": "🚀 Đã khởi động cỗ máy — xem Nhật Ký bên dưới!"}
 
 @eel.expose
 def dung_auto():
