@@ -5,75 +5,132 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Cỗ Máy SEO Auto 100%</title>
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',sans-serif;background:#0b0f1a;color:#cbd5e1;overflow:hidden;font-size:13px}
-    ::-webkit-scrollbar{width:5px;height:5px}
-    ::-webkit-scrollbar-track{background:#111827}
-    ::-webkit-scrollbar-thumb{background:#374151;border-radius:3px}
+    body{font-family:'Inter','Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;
+         overflow:hidden;font-size:13px;line-height:1.5;letter-spacing:.01em}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:#161b22}
+    ::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
+    ::-webkit-scrollbar-thumb:hover{background:#006AF5}
 
+    /* ── Zalo colour palette ─────────────────────────────── */
+    :root{
+      --z-blue:#006AF5;
+      --z-blue2:#0091FF;
+      --z-dark:#0055CC;
+      --z-bg:#0d1117;
+      --z-bg2:#161b22;
+      --z-bg3:#0a0f18;
+      --z-border:#21262d;
+      --z-border2:#30363d;
+      --z-text:#c9d1d9;
+      --z-muted:#6e7681;
+      --z-white:#f0f6fc;
+    }
+
+    /* ── Titlebar ─────────────────────────────────────────── */
     #titlebar{-webkit-app-region:drag;user-select:none}
     #titlebar button{-webkit-app-region:no-drag}
 
-    /* Tabs */
-    .tab-btn{padding:8px 16px;border-bottom:2px solid transparent;white-space:nowrap;
-             font-size:12.5px;color:#4b5563;cursor:pointer;transition:all .15s}
-    .tab-btn.active{border-bottom-color:#ef4444;color:#f9fafb;font-weight:600}
-    .tab-btn:hover:not(.active){color:#9ca3af}
+    /* ── Tabs ─────────────────────────────────────────────── */
+    .tab-btn{padding:8px 15px;border-bottom:2px solid transparent;white-space:nowrap;
+             font-size:12.5px;font-weight:500;color:var(--z-muted);cursor:pointer;
+             transition:all .15s;letter-spacing:.01em}
+    .tab-btn.active{border-bottom-color:var(--z-blue);color:var(--z-white);font-weight:600}
+    .tab-btn:hover:not(.active){color:#8b949e}
 
-    /* Card */
-    .card{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:16px}
-    .card-inner{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:12px}
+    /* ── Cards ────────────────────────────────────────────── */
+    .card{background:var(--z-bg2);border:1px solid var(--z-border);
+          border-radius:10px;padding:16px}
+    .card-inner{background:var(--z-bg3);border:1px solid var(--z-border2);
+                border-radius:8px;padding:12px}
 
-    /* Input */
-    .inp{width:100%;background:#0f172a;border:1px solid #1e293b;color:#e2e8f0;
-         border-radius:7px;padding:7px 11px;font-size:12.5px;outline:none;transition:border .15s}
-    .inp:focus{border-color:#ef4444}
-    .inp::placeholder{color:#374151}
-    select.inp option{background:#0f172a}
+    /* ── Inputs ───────────────────────────────────────────── */
+    .inp{width:100%;background:var(--z-bg3);border:1px solid var(--z-border2);
+         color:var(--z-white);border-radius:7px;padding:7px 11px;
+         font-size:12.5px;font-family:inherit;outline:none;transition:border .15s}
+    .inp:focus{border-color:var(--z-blue);box-shadow:0 0 0 3px rgba(0,106,245,.12)}
+    .inp::placeholder{color:#3d444d}
+    select.inp option{background:var(--z-bg2)}
 
-    /* Buttons */
-    .btn-red{background:linear-gradient(135deg,#dc2626,#ea580c);color:#fff;border:none;
-             border-radius:7px;padding:8px 18px;font-size:12.5px;font-weight:600;
-             cursor:pointer;transition:opacity .15s;white-space:nowrap}
-    .btn-red:hover{opacity:.85}
-    .btn-red:disabled{opacity:.4;cursor:not-allowed}
-    .btn-ghost{background:transparent;border:1px solid #1f2937;color:#6b7280;border-radius:7px;
-               padding:7px 14px;font-size:12.5px;cursor:pointer;transition:all .15s}
-    .btn-ghost:hover{border-color:#ef4444;color:#ef4444}
+    /* ── Buttons ──────────────────────────────────────────── */
+    .btn-red{background:linear-gradient(135deg,var(--z-blue),var(--z-blue2));
+             color:#fff;border:none;border-radius:7px;padding:8px 18px;
+             font-size:12.5px;font-weight:600;font-family:inherit;
+             cursor:pointer;transition:opacity .15s;white-space:nowrap;
+             letter-spacing:.01em}
+    .btn-red:hover{opacity:.88}
+    .btn-red:disabled{opacity:.35;cursor:not-allowed}
+    .btn-ghost{background:transparent;border:1px solid var(--z-border2);
+               color:var(--z-muted);border-radius:7px;padding:7px 14px;
+               font-size:12.5px;font-family:inherit;cursor:pointer;
+               transition:all .15s;white-space:nowrap}
+    .btn-ghost:hover{border-color:var(--z-blue);color:var(--z-blue)}
 
-    /* Section header */
-    .sh{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;
-        color:#f1f5f9;margin-bottom:10px}
-    .sh::before{content:'';width:3px;height:14px;background:#ef4444;border-radius:2px;flex-shrink:0}
+    /* ── Section header ───────────────────────────────────── */
+    .sh{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;
+        color:var(--z-white);margin-bottom:12px;letter-spacing:.01em}
+    .sh::before{content:'';width:3px;height:15px;
+                background:linear-gradient(180deg,var(--z-blue),var(--z-blue2));
+                border-radius:2px;flex-shrink:0}
 
-    /* Log box */
-    .log{font-family:'Consolas',monospace;font-size:11px;background:#060b12;
-         border:1px solid #111827;border-radius:7px;padding:8px 10px;
-         max-height:200px;overflow-y:auto;color:#64748b;line-height:1.7}
+    /* ── Log box ──────────────────────────────────────────── */
+    .log{font-family:'Cascadia Code','Consolas',monospace;font-size:11.5px;
+         background:var(--z-bg3);border:1px solid var(--z-border);
+         border-radius:8px;padding:10px 12px;max-height:200px;
+         overflow-y:auto;color:#7d8590;line-height:1.8}
 
-    /* Spinner */
+    /* ── Spinner ──────────────────────────────────────────── */
     @keyframes spin{to{transform:rotate(360deg)}}
     .spin{animation:spin 1s linear infinite}
 
-    /* Toggle btn */
-    .tgl{padding:5px 12px;border-radius:6px;border:1px solid #1f2937;font-size:12px;
-         color:#4b5563;cursor:pointer;transition:all .15s}
-    .tgl.on{background:#ef4444;border-color:#ef4444;color:#fff;font-weight:600}
+    /* ── Toggle ───────────────────────────────────────────── */
+    .tgl{padding:5px 13px;border-radius:20px;border:1px solid var(--z-border2);
+         font-size:12px;font-weight:500;color:var(--z-muted);
+         cursor:pointer;transition:all .2s}
+    .tgl.on{background:rgba(0,106,245,.18);border-color:var(--z-blue);
+            color:var(--z-blue);font-weight:600}
 
-    /* Drop zone */
-    #drop-zone{border:2px dashed #1f2937;border-radius:9px;padding:28px;text-align:center;
-               transition:all .2s;cursor:pointer}
-    #drop-zone:hover,#drop-zone.dv{border-color:#ef4444;background:rgba(239,68,68,.06)}
+    /* ── Drop zone ────────────────────────────────────────── */
+    #drop-zone{border:2px dashed var(--z-border2);border-radius:10px;
+               padding:28px;text-align:center;transition:all .2s;cursor:pointer}
+    #drop-zone:hover,#drop-zone.dv{border-color:var(--z-blue);
+                                    background:rgba(0,106,245,.06)}
 
-    /* Table */
-    table{width:100%;border-collapse:collapse;font-size:12px}
-    th{background:#0f172a;color:#6b7280;padding:7px 10px;text-align:left;border-bottom:1px solid #1f2937}
-    td{padding:7px 10px;border-bottom:1px solid #111827;color:#94a3b8;vertical-align:top}
-    tr:hover td{background:#0f172a}
+    /* ── Table ────────────────────────────────────────────── */
+    table{width:100%;border-collapse:collapse;font-size:12px;font-family:inherit}
+    th{background:var(--z-bg3);color:var(--z-muted);padding:8px 12px;
+       text-align:left;border-bottom:1px solid var(--z-border);
+       font-weight:600;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase}
+    td{padding:8px 12px;border-bottom:1px solid var(--z-border);
+       color:#8b949e;vertical-align:middle;font-size:12.5px}
+    tr:hover td{background:rgba(0,106,245,.04)}
+    td a{color:var(--z-blue);text-decoration:none}
+    td a:hover{text-decoration:underline}
 
-    .badge-ok{background:#14532d;color:#4ade80;padding:1px 7px;border-radius:99px;font-size:11px}
-    .badge-err{background:#450a0a;color:#f87171;padding:1px 7px;border-radius:99px;font-size:11px}
+    /* ── Pagination ───────────────────────────────────────── */
+    .pg-btn{padding:4px 10px;border:1px solid var(--z-border2);border-radius:6px;
+            background:transparent;color:var(--z-muted);cursor:pointer;
+            font-size:12px;transition:all .15s}
+    .pg-btn:hover{border-color:var(--z-blue);color:var(--z-blue)}
+    .pg-btn.active{background:var(--z-blue);border-color:var(--z-blue);
+                   color:#fff;font-weight:600}
+    .pg-btn:disabled{opacity:.35;cursor:not-allowed}
+
+    /* ── Badges ───────────────────────────────────────────── */
+    .badge-ok{background:rgba(35,134,54,.25);color:#3fb950;
+              padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+    .badge-err{background:rgba(248,81,73,.15);color:#f85149;
+               padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+    .badge-blue{background:rgba(0,106,245,.15);color:var(--z-blue);
+                padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+
+    /* ── Label ────────────────────────────────────────────── */
+    label.lbl{display:block;font-size:11.5px;font-weight:500;
+              color:var(--z-muted);margin-bottom:5px;letter-spacing:.02em}
   </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -81,7 +138,7 @@
 <!-- TITLEBAR -->
 <div id="titlebar" class="h-9 bg-gray-950 border-b border-gray-900 flex items-center justify-between px-4 shrink-0">
   <div class="flex items-center gap-2">
-    <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+    <svg class="w-4 h-4" style="color:#006AF5" fill="currentColor" viewBox="0 0 20 20">
       <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/>
     </svg>
     <span class="text-sm font-bold text-slate-300">Cỗ Máy SEO Auto 100%</span>
@@ -94,7 +151,7 @@
             title="Kiểm tra cập nhật">
       🔄 Cập nhật
     </button>
-    <button onclick="eel.close_win()()" class="w-7 h-6 rounded text-gray-600 hover:bg-red-700 hover:text-white text-sm transition-colors">✕</button>
+    <button onclick="eel.close_win()()" class="w-7 h-6 rounded text-gray-600 hover:bg-blue-700 hover:text-white text-sm transition-colors">✕</button>
   </div>
 
   <!-- Update Modal -->
@@ -137,13 +194,13 @@
     <div class="px-3 border-t border-gray-900 pt-3">
       <p class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">📡 Các Kênh Đăng Bài:</p>
       <label class="flex items-center gap-2 text-xs text-gray-400 mb-1.5 cursor-pointer">
-        <input type="checkbox" id="cb-web" checked class="accent-red-600" onchange="onCfgChange()"/> Đăng lên Website
+        <input type="checkbox" id="cb-web" checked class="accent-blue-500" onchange="onCfgChange()"/> Đăng lên Website
       </label>
       <label class="flex items-center gap-2 text-xs text-gray-400 mb-1.5 cursor-pointer">
-        <input type="checkbox" id="cb-zalo" class="accent-red-600" onchange="onCfgChange()"/> Tự động đẩy Zalo OA
+        <input type="checkbox" id="cb-zalo" class="accent-blue-500" onchange="onCfgChange()"/> Tự động đẩy Zalo OA
       </label>
       <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
-        <input type="checkbox" id="cb-fb" class="accent-red-600" onchange="onCfgChange()"/> Tự động đẩy Facebook
+        <input type="checkbox" id="cb-fb" class="accent-blue-500" onchange="onCfgChange()"/> Tự động đẩy Facebook
       </label>
     </div>
 
@@ -237,7 +294,7 @@
         <!-- Loading -->
         <div id="t1-loading" class="hidden card">
           <div class="flex items-center gap-2 mb-2">
-            <svg class="spin w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24">
+            <svg class="spin w-4 h-4" style="color:#006AF5" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4A10 10 0 002 12h2z"/>
             </svg>
@@ -253,7 +310,7 @@
             <span id="t1-kw-phu" class="text-xs text-gray-600 shrink-0"></span>
           </div>
           <div id="t1-rcontent"
-               class="bg-gray-950 rounded-lg p-4 max-h-64 overflow-y-auto text-slate-400 text-xs leading-relaxed [&_h1]:text-white [&_h2]:text-slate-200 [&_h2]:font-bold [&_h2]:mt-3 [&_strong]:text-slate-200 [&_a]:text-red-400">
+               class="bg-gray-950 rounded-lg p-4 max-h-64 overflow-y-auto text-slate-400 text-xs leading-relaxed [&_h1]:text-white [&_h2]:text-slate-200 [&_h2]:font-bold [&_h2]:mt-3 [&_strong]:text-slate-200" style="--tw-prose-links:#006AF5">
           </div>
         </div>
       </div>
@@ -406,14 +463,26 @@
 
         <div class="card">
           <div class="sh">📋 Nguyên Liệu Sẵn Sàng (Từ Khoá Đã "Hoàn thành")</div>
-          <p class="text-xs text-gray-600 mb-2">Cần kết nối Google Sheets ở tab Tự Động trước.</p>
-          <div id="t4-nguyen-lieu" class="overflow-x-auto mb-3">
-            <p class="text-xs text-gray-600 italic">Chưa có dữ liệu. Kết nối Sheets ở tab Tự Động.</p>
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs" style="color:#6e7681">Cần kết nối Google Sheets ở tab <strong class="text-slate-400">Tự Động</strong> trước.</p>
+            <span id="t4-total-badge" class="badge-blue hidden"></span>
           </div>
+
+          <!-- Bảng dữ liệu + phân trang -->
+          <div id="t4-nguyen-lieu" class="overflow-x-auto mb-2">
+            <p class="text-xs italic" style="color:#6e7681">Chưa có dữ liệu. Kết nối Sheets ở tab Tự Động.</p>
+          </div>
+
+          <!-- Phân trang -->
+          <div id="t4-pg-wrap" class="hidden flex items-center justify-between mb-3">
+            <span id="t4-pg-info" class="text-xs" style="color:#6e7681"></span>
+            <div id="t4-pg-btns" class="flex gap-1"></div>
+          </div>
+
           <div class="flex gap-2">
             <button onclick="t4_tai_nguyen_lieu()" class="btn-ghost">🔄 Tải Nguyên Liệu</button>
             <button onclick="t4_khoi_dong()" class="btn-red">🚀 KÍCH HOẠT TRẠM VỆ TINH</button>
-            <button onclick="t4_dung()" class="btn-ghost text-red-500">🛑 DỪNG KHẨN CẤP</button>
+            <button onclick="t4_dung()" class="btn-ghost" style="color:#f85149;border-color:#f8514940">🛑 DỪNG KHẨN CẤP</button>
           </div>
         </div>
 
@@ -428,11 +497,11 @@
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-3">
           <div class="card text-center">
-            <p class="text-2xl font-bold text-red-500" id="rag-count">—</p>
+            <p class="text-2xl font-bold" style="color:#006AF5" id="rag-count">—</p>
             <p class="text-xs text-gray-600 mt-1">Đoạn kiến thức</p>
           </div>
           <div class="card text-center">
-            <p class="text-2xl font-bold text-orange-400" id="rag-files">—</p>
+            <p class="text-2xl font-bold" style="color:#0091FF" id="rag-files">—</p>
             <p class="text-xs text-gray-600 mt-1">Tài liệu gốc</p>
           </div>
           <div class="card flex items-center justify-center">
@@ -445,7 +514,7 @@
           <div class="sh">📥 Nạp Tài Liệu PDF / TXT Vào Kho</div>
           <div id="drop-zone" onclick="document.getElementById('rag-fi').click()">
             <p class="text-3xl mb-1">📄</p>
-            <p class="text-sm text-gray-400">Kéo thả hoặc <span class="text-red-400 font-semibold">click chọn file</span></p>
+            <p class="text-sm text-gray-400">Kéo thả hoặc <span style="color:#006AF5" class="font-semibold">click chọn file</span></p>
             <p class="text-xs text-gray-700 mt-1">Hỗ trợ: PDF, TXT • Nhiều file cùng lúc</p>
           </div>
           <input id="rag-fi" type="file" multiple accept=".pdf,.txt" class="hidden" onchange="rag_add(this.files)"/>
@@ -460,7 +529,7 @@
         <!-- Log -->
         <div id="rag-loading" class="hidden card">
           <div class="flex items-center gap-2 mb-2">
-            <svg class="spin w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24">
+            <svg class="spin w-4 h-4" style="color:#006AF5" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4A10 10 0 002 12h2z"/>
             </svg>
@@ -509,10 +578,10 @@
           </div>
           <div class="flex gap-4">
             <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
-              <input id="t6-rag" type="checkbox" checked class="accent-red-600"/> 🧠 Bơm RAG sau khi cào xong
+              <input id="t6-rag" type="checkbox" checked class="accent-blue-500"/> 🧠 Bơm RAG sau khi cào xong
             </label>
             <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
-              <input id="t6-ai" type="checkbox" checked class="accent-red-600"/> 🤖 AI lọc trang rác trước khi in PDF
+              <input id="t6-ai" type="checkbox" checked class="accent-blue-500"/> 🤖 AI lọc trang rác trước khi in PDF
             </label>
           </div>
           <button onclick="t6_bat_dau()" class="btn-red w-full py-3 text-sm">🚀 BẮT ĐẦU CÀO DỮ LIỆU</button>
@@ -869,20 +938,78 @@ async function t3_phau_thuat() {
 // ══════════════════════════════════════════════════════════════
 let _t4DanhSach = [];
 
+let _t4Page = 1;
+const _T4_PAGE_SIZE = 10;
+
 async function t4_tai_nguyen_lieu() {
   _t4DanhSach = await eel.ve_tinh_lay_nguyen_lieu()();
-  const el = document.getElementById('t4-nguyen-lieu');
+  _t4Page = 1;
+  t4_render_page();
+}
+
+function t4_render_page() {
+  const el   = document.getElementById('t4-nguyen-lieu');
+  const wrap = document.getElementById('t4-pg-wrap');
+  const info = document.getElementById('t4-pg-info');
+  const btns = document.getElementById('t4-pg-btns');
+  const badge= document.getElementById('t4-total-badge');
+
   if (!_t4DanhSach.length) {
-    el.innerHTML = '<p class="text-xs text-gray-600 italic">Chưa có dữ liệu. Kết nối Sheets ở tab Tự Động.</p>';
+    el.innerHTML = '<p class="text-xs italic" style="color:#6e7681">Chưa có dữ liệu. Kết nối Sheets ở tab Tự Động.</p>';
+    wrap.classList.add('hidden');
+    badge.classList.add('hidden');
     return;
   }
+
+  badge.textContent = `${_t4DanhSach.length} từ khoá`;
+  badge.classList.remove('hidden');
+
+  const total = _t4DanhSach.length;
+  const pages = Math.ceil(total / _T4_PAGE_SIZE);
+  _t4Page = Math.max(1, Math.min(_t4Page, pages));
+  const start = (_t4Page - 1) * _T4_PAGE_SIZE;
+  const slice = _t4DanhSach.slice(start, start + _T4_PAGE_SIZE);
+
   el.innerHTML = `<table>
-    <thead><tr><th>Từ khoá</th><th>Link WP</th><th>Bài vệ tinh</th></tr></thead>
-    <tbody>${_t4DanhSach.map(r =>
-      `<tr><td>${r.tu_khoa}</td>
-           <td><a href="${r.link}" target="_blank" class="text-red-400">${r.link.slice(0,50)||'—'}</a></td>
-           <td>${r.so_ve_tinh||0}</td></tr>`).join('')}
+    <thead><tr><th>#</th><th>Từ khoá</th><th>Link WP</th><th style="text-align:center">Bài VT</th></tr></thead>
+    <tbody>${slice.map((r, i) => {
+      const stt = start + i + 1;
+      const sv  = parseInt(r.so_ve_tinh) || 0;
+      const max = 3;
+      const dots = '●'.repeat(sv) + '○'.repeat(Math.max(0, max - sv));
+      return `<tr>
+        <td style="color:#6e7681;width:32px">${stt}</td>
+        <td style="color:#c9d1d9;font-weight:500">${r.tu_khoa}</td>
+        <td>${r.link ? `<a href="${r.link}" target="_blank">${r.link.replace('https://','').slice(0,45)}</a>` : '<span style="color:#6e7681">—</span>'}</td>
+        <td style="text-align:center">
+          <span title="${sv}/${max} bài vệ tinh" style="font-size:10px;letter-spacing:2px;color:${sv>0?'#006AF5':'#3d444d'}">${dots}</span>
+          <span class="badge-blue" style="margin-left:4px">${sv}/${max}</span>
+        </td>
+      </tr>`;}).join('')}
     </tbody></table>`;
+
+  // Phân trang info
+  info.textContent = `Hiển thị ${start+1}–${Math.min(start+_T4_PAGE_SIZE,total)} trong ${total} từ khoá`;
+  wrap.classList.remove('hidden');
+  wrap.style.display = 'flex';
+
+  // Nút phân trang
+  btns.innerHTML = '';
+  const addBtn = (label, page, active=false, disabled=false) => {
+    const b = document.createElement('button');
+    b.className = 'pg-btn' + (active?' active':'');
+    b.textContent = label;
+    b.disabled = disabled;
+    b.onclick = () => { _t4Page = page; t4_render_page(); };
+    btns.appendChild(b);
+  };
+
+  addBtn('‹', _t4Page-1, false, _t4Page===1);
+  const range = 5;
+  const from  = Math.max(1, _t4Page - Math.floor(range/2));
+  const to    = Math.min(pages, from + range - 1);
+  for (let p = from; p <= to; p++) addBtn(p, p, p===_t4Page);
+  addBtn('›', _t4Page+1, false, _t4Page===pages);
 }
 
 async function t4_khoi_dong() {

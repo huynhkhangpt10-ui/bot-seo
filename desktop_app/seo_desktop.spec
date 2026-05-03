@@ -16,8 +16,9 @@ added_datas = [
     # Giao diện web
     (os.path.join(SPEC_DIR, "web"), "web"),
 
-    # Credentials Vertex AI
+    # Credentials Vertex AI + Google Sheets
     (os.path.join(PROJECT_DIR, "vertex-key.json"), "."),
+    (os.path.join(PROJECT_DIR, "google-key.json"), "."),
 
     # Module Python từ project chính (copy vào root của bundle)
     (os.path.join(PROJECT_DIR, "my_config.py"),          "."),
@@ -68,6 +69,7 @@ hidden = [
     # Hỗ trợ
     "importlib_resources", "pyparsing", "bs4", "lxml",
     "PIL", "PIL.Image",
+    "markdown", "unicodedata",
 ]
 
 a = Analysis(
@@ -79,7 +81,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=["streamlit", "matplotlib", "cv2"],
+    excludes=["streamlit", "matplotlib", "cv2", "torch", "tensorflow"],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,

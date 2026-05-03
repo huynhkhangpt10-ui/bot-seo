@@ -19,11 +19,73 @@ else:
 WEB_DIR = os.path.join(BUNDLE_DIR, "web")
 sys.path.insert(0, PROJECT_DIR)
 
+# Chuyển CWD về Bot_SEO/ để tất cả đường dẫn tương đối hoạt động đúng
+os.chdir(PROJECT_DIR)
+
+# ── Mock Streamlit ─────────────────────────────────────────────────────────────
+# my_modules.py, seo_doctor.py... có `import streamlit as st`.
+# Khi chạy trong Eel/desktop app, Streamlit không có → cần mock để tránh crash.
+import types as _types
+
+def _make_st_mock():
+    st = _types.ModuleType("streamlit")
+
+    # Hàm trả về None (dùng cho gọi bình thường)
+    _noop = lambda *a, **k: None
+
+    # Decorator passthrough: dùng cho @st.cache_data / @st.cache_resource
+    # Hỗ trợ cả @st.cache_data và @st.cache_data(ttl=3600)
+    def _deco_factory(*a, **k):
+        if len(a) == 1 and callable(a[0]) and not k:
+            return a[0]          # @st.cache_data  (không có tham số)
+        return lambda fn: fn     # @st.cache_data(ttl=...) (có tham số)
+
+    for attr in ["error","warning","info","success","write","markdown",
+                 "spinner","stop","rerun","caption",
+                 "subheader","header","title","divider",
+                 "dataframe","table","code","text","empty",
+                 "button","checkbox","selectbox","multiselect",
+                 "text_input","text_area","number_input","slider",
+                 "file_uploader","progress","balloons","snow","toast",
+                 "pyplot","image","video","audio",
+                 "data_editor","metric","form","form_submit_button",
+                 "set_page_config","experimental_rerun"]:
+        setattr(st, attr, _noop)
+
+    # Decorators đặc biệt
+    st.cache_data     = _deco_factory
+    st.cache_resource = _deco_factory
+
+    # session_state
+    st.session_state = {}
+
+    # Context managers (columns, tabs, sidebar, expander, form...)
+    class _CM:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def __iter__(self): return iter([_CM(), _CM()])
+        def __getattr__(self, name): return lambda *a, **k: None
+
+    st.columns  = lambda *a, **k: _CM()
+    st.tabs     = lambda labels: [_CM() for _ in labels]
+    st.sidebar  = _CM()
+    st.expander = lambda *a, **k: _CM()
+    st.form     = lambda *a, **k: _CM()
+    return st
+
+import sys as _sys
+if "streamlit" not in _sys.modules:
+    _sys.modules["streamlit"] = _make_st_mock()
+# ────────────────────────────────────────────────────────────────────────────────
+
 # ── Import modules ─────────────────────────────────────────────────────────────
 from my_config import (client, WP_USER, WP_APP_PASS, WP_POSTS_URL,
                         WP_TAGS_URL, WP_CAT_URL, WP_MEDIA_URL,
-                        GOOGLE_KEY_PATH, GOOGLE_SEARCH_API_KEY,
+                        GOOGLE_SEARCH_API_KEY,
                         cons_key, cons_sec, oa_tok, oa_sec)
+
+# Luôn trỏ đúng vị trí file key dù chạy từ thư mục nào
+GOOGLE_KEY_PATH = os.path.join(PROJECT_DIR, "google-key.json")
 import my_modules as mm
 from module_content  import sinh_dan_y, sinh_bai_viet
 import nap_tai_lieu

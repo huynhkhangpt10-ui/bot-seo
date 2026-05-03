@@ -985,6 +985,9 @@ with tab4:
 
     st.subheader("📊 Nguyên Liệu Sẵn Sàng (Từ Khóa Đã 'Hoàn thành')")
 
+    import pandas as _pd
+    df_ve_tinh = _pd.DataFrame()   # mặc định rỗng, tránh NameError bên dưới
+
     try:
         if "Trạng thái" in df.columns:
             df_ve_tinh = df[df["Trạng thái"] == "Hoàn thành"].copy()
