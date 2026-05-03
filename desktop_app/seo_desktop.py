@@ -160,12 +160,98 @@ def _tao_prompt_anh_co_rag(tk_chinh, noi_dung=""):
 # để chỉ desktop app dùng RAG khi tạo prompt ảnh.
 mm.tao_prompt_anh_software_interface = _tao_prompt_anh_co_rag
 
+_ORIGINAL_DANG_BAI_FACEBOOK = mm.dang_bai_facebook
+_CURRENT_FB_LOG_FN = None
+
+def _dang_bai_facebook_desktop(tieu_de, html_content, link_web, anh_cover_url=None):
+    """Desktop-only: đăng Facebook và log từng page ngay khi xong."""
+    import json as _json, time as _time, re as _re
+    from datetime import datetime as _dt
+
+    fb_file = os.path.join(PROJECT_DIR, "fb_pages.json")
+    log_fn = _CURRENT_FB_LOG_FN
+    try:
+        with open(fb_file, "r", encoding="utf-8") as f:
+            pages = _json.load(f)
+    except Exception:
+        return False, "Chưa cấu hình FB hoặc lỗi đọc fb_pages.json."
+    if not pages:
+        return False, "Danh sách Page FB trống."
+
+    text_sach = _re.sub(r"<[^>]+>", "", html_content)
+    text_sach = _re.sub(r"\[.*?\]", "", text_sach)
+    text_sach = " ".join(text_sach.split())
+    doan_trich = (text_sach[:450].rsplit(" ", 1)[0] if text_sach else "") + "..."
+    noi_dung_fb = f"🔥 {tieu_de}\n\n{doan_trich}\n\n👉 Xem chi tiết và tải về tại đây: {link_web}\n\n#DichVuHuynhKhang #HuynhKhangIT"
+
+    img_url = anh_cover_url or "https://huynhkhang.com/wp-content/uploads/2023/10/logo-huynh-khang.png"
+    img_bytes = None
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"}
+        img_res = requests.get(img_url, headers=headers, timeout=15)
+        if img_res.status_code == 200:
+            img_bytes = img_res.content
+    except Exception as e:
+        if log_fn:
+            log_fn(f"⚠️ Không tải được ảnh FB, sẽ đăng link: {e}")
+
+    ket_qua, ok_any = [], False
+    for idx, page in enumerate(pages):
+        page_id = page.get("page_id")
+        token = page.get("access_token")
+        page_name = page.get("name", "Unknown Page")
+        if log_fn:
+            log_fn(f"🌐 Facebook: đang đăng lên {page_name}...")
+
+        try:
+            if img_bytes:
+                url = f"https://graph.facebook.com/v19.0/{page_id}/photos"
+                payload = {"message": noi_dung_fb, "access_token": token}
+                files = {"source": ("image.jpg", img_bytes, "image/jpeg")}
+                res = requests.post(url, data=payload, files=files, timeout=30).json()
+            else:
+                url = f"https://graph.facebook.com/v19.0/{page_id}/feed"
+                payload = {"message": noi_dung_fb, "link": link_web, "access_token": token}
+                res = requests.post(url, data=payload, timeout=30).json()
+
+            if "id" in res or "post_id" in res:
+                post_id = res.get("post_id") or res.get("id", "")
+                msg = f"✅ Facebook: {page_name} đã đăng ({post_id})"
+                ket_qua.append(msg)
+                ok_any = True
+                if log_fn:
+                    log_fn(msg)
+                if idx < len(pages) - 1:
+                    if log_fn:
+                        log_fn("⏳ Nghỉ 60s trước page Facebook tiếp theo...")
+                    _time.sleep(60)
+            else:
+                err_msg = res.get("error", {}).get("message", "Bị FB chặn ẩn")
+                msg = f"❌ Facebook: {page_name} lỗi Meta: {err_msg}"
+                ket_qua.append(msg)
+                if log_fn:
+                    log_fn(msg)
+                with open(os.path.join(PROJECT_DIR, "log_loi_facebook.txt"), "a", encoding="utf-8") as f:
+                    f.write(f"[{_dt.now().strftime('%d/%m/%Y %H:%M:%S')}] LỖI TẠI PAGE '{page_name}': {err_msg}\n")
+        except Exception as e:
+            msg = f"❌ Facebook: {page_name} lỗi hệ thống: {e}"
+            ket_qua.append(msg)
+            if log_fn:
+                log_fn(msg)
+            with open(os.path.join(PROJECT_DIR, "log_loi_facebook.txt"), "a", encoding="utf-8") as f:
+                f.write(f"[{_dt.now().strftime('%d/%m/%Y %H:%M:%S')}] LỖI HỆ THỐNG TẠI PAGE '{page_name}': {e}\n")
+
+    return ok_any, " | ".join(ket_qua)
+
+mm.dang_bai_facebook = _dang_bai_facebook_desktop
+
 eel.init(WEB_DIR)
 
 # ════════════════════════════════════════════════════════════════════════════════
 # TIỆN ÍCH NỘI BỘ
 # ════════════════════════════════════════════════════════════════════════════════
 UI_FILE = os.path.join(PROJECT_DIR, "ui_settings.json")
+DEFAULT_FLATSOME_SHORTCODE = '[blog_posts style="normal" columns="4" category="tin-tuc" posts="8" orderby="rand" show_date="false" excerpt="false" show_category="false" comments="false" image_height="56.25%" auto_slide="4000"]'
 
 def _slug(text):
     s = text.lower().strip()
@@ -199,6 +285,10 @@ def _push_log(fn_name, msg):
         getattr(eel, fn_name)(str(msg).replace("**",""))()
     except Exception:
         pass
+
+def _normalize_shortcode(shortcode: str) -> str:
+    shortcode = str(shortcode or "").strip()
+    return shortcode if shortcode else DEFAULT_FLATSOME_SHORTCODE
 
 # ════════════════════════════════════════════════════════════════════════════════
 # CẤU HÌNH / SIDEBAR
@@ -507,7 +597,8 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
 
             # Author block / shortcode từ ui_settings
             author_block_code  = cfg.get("author_block_code", "")
-            flatsome_shortcode = cfg.get("flatsome_shortcode", "")
+            flatsome_shortcode = _normalize_shortcode(cfg.get("flatsome_shortcode", ""))
+            _push_log("log_tab2", f"🧩 Shortcode cuối bài: {'Có' if flatsome_shortcode else 'Không'}")
 
             # ── Hàng đợi ────────────────────────────────────────────────────
             hang_doi = df[
@@ -516,6 +607,8 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
             ]
             _push_log("log_tab2", f"📋 Tìm thấy {len(hang_doi)} bài cần viết")
             reset_dem_so_bai()
+            global _CURRENT_FB_LOG_FN
+            _CURRENT_FB_LOG_FN = lambda msg: _push_log("log_tab2", msg)
 
             cols = df.columns.tolist()
             col_tt   = cols.index("Trạng thái") + 1
@@ -570,7 +663,7 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
                     kho_link_list         = kho_link_list,
                     ws_kho                = ws_kho,
                     author_block_code     = author_block_code,
-                    flatsome_shortcode    = flatsome_shortcode,
+                    flatsome_shortcode    = _normalize_shortcode(flatsome_shortcode),
                     danh_sach_dm_id_auto  = danh_sach_dm_id,
                     danh_sach_the_id_auto = danh_sach_the_id,
                     trang_thai_wp         = trang_thai_wp,
@@ -636,10 +729,12 @@ def chay_auto_sheets(gs_url: str, tab_name: str,
 
             _push_log("log_tab2", f"\n🎉 Hoàn tất! Đã viết {dem}/{len(hang_doi)} bài")
             eel.tab2_done()()
+            _CURRENT_FB_LOG_FN = None
 
         except Exception as e:
             import traceback
             _push_log("log_tab2", f"❌ Lỗi hệ thống: {e}\n{traceback.format_exc()[-300:]}")
+            _CURRENT_FB_LOG_FN = None
 
     threading.Thread(target=_worker, daemon=True).start()
     return {"ok": True, "msg": "🚀 Đã khởi động cỗ máy — xem Nhật Ký bên dưới!"}
@@ -838,7 +933,7 @@ def dang_bai_thu_cong_full(tu_khoa: str, tieu_de: str, outline: str,
             trang_thai_wp = cfg_dang.get("trang_thai") or cfg.get("trang_thai", "publish")
 
             author_block_code  = cfg_dang.get("author_block_code") or cfg.get("author_block_code", "")
-            flatsome_shortcode = cfg_dang.get("flatsome_shortcode") or cfg.get("flatsome_shortcode", "")
+            flatsome_shortcode = _normalize_shortcode(cfg_dang.get("flatsome_shortcode") or cfg.get("flatsome_shortcode", ""))
 
             cho_phep_web   = bool(cfg_dang.get("cho_phep_web",  True))
             cho_phep_zalo  = bool(cfg_dang.get("cho_phep_zalo", False))
@@ -861,6 +956,8 @@ def dang_bai_thu_cong_full(tu_khoa: str, tieu_de: str, outline: str,
                 kho_link_list.append({"row": 3, "anchor": anchor_out, "url": url_out})
 
             reset_dem_so_bai()
+            global _CURRENT_FB_LOG_FN
+            _CURRENT_FB_LOG_FN = lambda msg: _push_log("log_tab1", msg)
             cb(f"🚀 Bắt đầu đăng bài đầy đủ: «{tu_khoa}»...")
 
             thanh_cong, msg_tt, link_bai = quy_trinh_dang_bai_full(
@@ -870,7 +967,7 @@ def dang_bai_thu_cong_full(tu_khoa: str, tieu_de: str, outline: str,
                 kho_link_list         = kho_link_list,
                 ws_kho                = None,
                 author_block_code     = author_block_code,
-                flatsome_shortcode    = flatsome_shortcode,
+                flatsome_shortcode    = _normalize_shortcode(flatsome_shortcode),
                 danh_sach_dm_id_auto  = danh_sach_dm_id,
                 danh_sach_the_id_auto = danh_sach_the_id,
                 trang_thai_wp         = trang_thai_wp,
@@ -886,6 +983,7 @@ def dang_bai_thu_cong_full(tu_khoa: str, tieu_de: str, outline: str,
             else:
                 cb(f"❌ Lỗi: {msg_tt}")
                 eel.tab1_full_done(False, "", msg_tt)()
+            _CURRENT_FB_LOG_FN = None
 
         except Exception as e:
             import traceback
@@ -893,6 +991,7 @@ def dang_bai_thu_cong_full(tu_khoa: str, tieu_de: str, outline: str,
             _push_log("log_tab1", err)
             try: eel.tab1_full_done(False, "", str(e))()
             except Exception: pass
+            _CURRENT_FB_LOG_FN = None
 
     threading.Thread(target=_worker, daemon=True).start()
     return {"ok": True, "msg": "🚀 Đã khởi động pipeline đầy đủ — xem log bên dưới!"}

@@ -958,8 +958,10 @@ async function t2_ket_noi() {
 async function t2_khoi_dong() {
   const url = document.getElementById('t2-url').value.trim();
   const tab = document.getElementById('t2-tab').value.trim() || 'Tukhoa';
+  await luuCauHinh();
   document.getElementById('t2-log-wrap').classList.remove('hidden');
   document.getElementById('t2-log').innerHTML = '';
+  appendLog('t2-log', '💾 Đã lưu cấu hình sidebar trước khi chạy Auto.');
   const r = await eel.chay_auto_sheets(url, tab,
     document.getElementById('cb-web').checked,
     document.getElementById('cb-zalo').checked,
