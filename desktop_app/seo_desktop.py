@@ -656,13 +656,27 @@ def loc_y_dinh_tu_khoa(gs_url: str, tab_name: str = "Tukhoa") -> dict:
 
 
 @eel.expose
+_DEFAULT_BLOCKS = [
+    {"name": "🧑‍💻 Tác giả bài viết",    "code": '[block id="tac-gia-bai-viet"]'},
+    {"name": "🤠 Tác giả Bình Dương",    "code": '[block id="tac-gia-binh-duong"]'},
+    {"name": "📞 TT liên hệ ngoài BD",   "code": '[block id="thong-tin-lien-he-ngoai-bd"]'},
+    {"name": "❌ Không chèn Block nào",   "code": ""},
+]
+
 def lay_danh_sach_blocks() -> list:
-    """Trả về danh sách author blocks [{name, code}] từ ui_settings.json."""
+    """Trả về danh sách author blocks [{name, code}] từ ui_settings.json.
+    Nếu chưa có → trả về danh sách mặc định giống Streamlit app."""
     try:
         cfg = tai_cau_hinh()
-        return cfg.get("blocks_list", [])
+        blocks = cfg.get("blocks_list", [])
+        if blocks:
+            return blocks
+        # Lần đầu chưa có → lưu mặc định và trả về
+        cfg["blocks_list"] = _DEFAULT_BLOCKS
+        luu_cau_hinh(cfg)
+        return _DEFAULT_BLOCKS
     except Exception:
-        return []
+        return _DEFAULT_BLOCKS
 
 @eel.expose
 def luu_block_moi(name: str, code: str) -> dict:
