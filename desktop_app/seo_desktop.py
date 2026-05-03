@@ -33,8 +33,16 @@ else:
     GIT_ROOT    = _find_git_root(PROJECT_DIR)
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(PROJECT_DIR, "vertex-key.json")
 
-WEB_DIR     = os.path.join(BUNDLE_DIR, "web")
+# WEB_DIR: ưu tiên load từ git source để git pull cập nhật UI ngay lập tức
+# Nếu không tìm thấy git root (ví dụ chạy trên máy khác không có source) → dùng bundle
+_web_from_git = os.path.join(GIT_ROOT, "desktop_app", "web") if GIT_ROOT else None
+if _web_from_git and os.path.isdir(_web_from_git):
+    WEB_DIR = _web_from_git
+else:
+    WEB_DIR = os.path.join(BUNDLE_DIR, "web")
+
 STOP_FILE   = os.path.join(PROJECT_DIR, "stop_auto.txt")   # tuyệt đối, tránh lỗi CWD
+# Python modules: ưu tiên load từ git source (d:\Bot_SEO\) trước bundle
 sys.path.insert(0, PROJECT_DIR)
 
 # Chuyển CWD về Bot_SEO/ để tất cả đường dẫn tương đối hoạt động đúng
