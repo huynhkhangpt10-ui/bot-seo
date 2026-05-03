@@ -655,7 +655,6 @@ def loc_y_dinh_tu_khoa(gs_url: str, tab_name: str = "Tukhoa") -> dict:
         return {"ok": False, "msg": str(e)}
 
 
-@eel.expose
 _DEFAULT_BLOCKS = [
     {"name": "🧑‍💻 Tác giả bài viết",    "code": '[block id="tac-gia-bai-viet"]'},
     {"name": "🤠 Tác giả Bình Dương",    "code": '[block id="tac-gia-binh-duong"]'},
@@ -663,6 +662,7 @@ _DEFAULT_BLOCKS = [
     {"name": "❌ Không chèn Block nào",   "code": ""},
 ]
 
+@eel.expose
 def lay_danh_sach_blocks() -> list:
     """Trả về danh sách author blocks [{name, code}] từ ui_settings.json.
     Nếu chưa có → trả về danh sách mặc định giống Streamlit app."""
